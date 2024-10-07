@@ -1,16 +1,4 @@
 {
-	"name": "scholagraphia",
-	"private": true,
-	"version": "0.1.0",
-	"type": "module",
-	"scripts": {
-		"dev": "vite",
-		"build": "tsc && vite build",
-		"lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-		"preview": "vite preview",
-		"test": "jest",
-		"start": "yarn dev --open"
-	},
 	"dependencies": {
 		"lucide-react": "^0.447.0",
 		"pako": "^2.1.0",
@@ -41,5 +29,17 @@
 		"vite": "^5.1.6",
 		"vite-plugin-checker": "^0.8.0"
 	},
-	"packageManager": "yarn@4.5.0"
+	"name": "scholagraphia",
+	"packageManager": "yarn@4.5.0",
+	"private": true,
+	"scripts": {
+		"build": "tsc -b && vite build",
+		"dev": "vite",
+		"lint": "eslint .",
+		"preview": "vite preview",
+		"start": "yarn dev --open",
+		"test": "jest"
+	},
+	"type": "module",
+	"version": "0.1.0"
 }
