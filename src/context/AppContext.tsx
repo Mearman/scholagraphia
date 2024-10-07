@@ -13,6 +13,22 @@ import { mergeSharedIds, parseSharedIds } from "../utils/idSharing";
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
+export function isThemeMode(
+	mode: string | undefined | null
+): mode is ThemeMode {
+	return mode ? ["light", "dark", "auto"].includes(mode) : false;
+}
+
+export function throwIfFailGuard<T>(
+	value: T,
+	guard: (value: T) => boolean,
+	message: string
+): asserts value is T {
+	if (!guard(value)) {
+		throw new Error(message);
+	}
+}
+
 export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 	const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
 	const [collections, setCollections] = useState<Collection[]>(() => {
@@ -26,9 +42,9 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 	const [collectedEntities, setCollectedEntities] = useState<
 		CollectedEntity[]
 	>([]);
-	const [themeMode, setThemeMode] = useState<ThemeMode>(() => {
-		const savedThemeMode = localStorage.getItem("themeMode") as ThemeMode;
-		return savedThemeMode || "auto";
+	const [themeMode, setThemeMode] = useState<ThemeMode>((): ThemeMode => {
+		const savedThemeMode = localStorage.getItem("themeMode");
+		return isThemeMode(savedThemeMode) ? savedThemeMode : "auto";
 	});
 	const [searchWhileTyping, setSearchWhileTyping] = useState<boolean>(() => {
 		const savedSearchWhileTyping =
