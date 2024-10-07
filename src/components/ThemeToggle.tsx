@@ -13,7 +13,10 @@ const ThemeToggle: React.FC = () => {
 				return <Moon size={20} className="text-blue-400" />;
 			case "auto":
 				return (
-					<Monitor size={20} className="text-gray-500 dark:text-gray-400" />
+					<Monitor
+						size={20}
+						className="text-gray-500 dark:text-gray-400"
+					/>
 				);
 		}
 	};

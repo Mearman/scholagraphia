@@ -1,9 +1,9 @@
 import { Database } from "lucide-react";
 import React, { useCallback, useEffect, useState } from "react";
 import {
-  getEntityDetails,
-  getRelatedEntities,
-  searchEntities,
+	getEntityDetails,
+	getRelatedEntities,
+	searchEntities,
 } from "./api/openAlex";
 import CollectedEntities from "./components/CollectedEntities";
 import CollectionManager from "./components/CollectionManager";
@@ -56,7 +56,9 @@ const AppContent: React.FC = () => {
 				setSearchResults(results);
 			} catch (error) {
 				console.error("Search error:", error);
-				setError("An error occurred while searching. Please try again.");
+				setError(
+					"An error occurred while searching. Please try again."
+				);
 				setSearchResults([]);
 			} finally {
 				setIsLoading(false);

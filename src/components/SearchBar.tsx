@@ -101,7 +101,9 @@ const SearchBar: React.FC<SearchBarProps> = ({
 		}
 	};
 
-	const handleEntityTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+	const handleEntityTypeChange = (
+		e: React.ChangeEvent<HTMLSelectElement>
+	) => {
 		const newType = e.target.value;
 		setEntityType(newType);
 		if (searchWhileTyping && query.trim() !== "") {

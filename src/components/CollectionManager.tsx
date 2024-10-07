@@ -1,16 +1,16 @@
 import {
-  Copy,
-  MoveRight,
-  PlusCircle,
-  Scissors,
-  Share2,
-  Trash2,
+	Copy,
+	MoveRight,
+	PlusCircle,
+	Scissors,
+	Share2,
+	Trash2,
 } from "lucide-react";
 import React, { useState } from "react";
 import { useAppContext } from "../context/AppContext";
 import {
-  generateShareableLink,
-  generateShareableMultiCollectionLink,
+	generateShareableLink,
+	generateShareableMultiCollectionLink,
 } from "../utils/idSharing";
 
 const CollectionManager: React.FC = () => {
@@ -27,7 +27,9 @@ const CollectionManager: React.FC = () => {
 
 	const [isEditing, setIsEditing] = useState<string | null>(null);
 	const [editName, setEditName] = useState("");
-	const [selectedCollections, setSelectedCollections] = useState<string[]>([]);
+	const [selectedCollections, setSelectedCollections] = useState<string[]>(
+		[]
+	);
 
 	const handleNameChange = (id: string, newName: string) => {
 		setCollections(
@@ -77,7 +79,9 @@ const CollectionManager: React.FC = () => {
 			navigator.clipboard
 				.writeText(link)
 				.then(() => {
-					alert(`Shareable link for "${collection.name}" copied to clipboard!`);
+					alert(
+						`Shareable link for "${collection.name}" copied to clipboard!`
+					);
 				})
 				.catch((err) => {
 					console.error("Failed to copy link: ", err);
@@ -98,7 +102,9 @@ const CollectionManager: React.FC = () => {
 		navigator.clipboard
 			.writeText(link)
 			.then(() => {
-				alert("Shareable link for all collections copied to clipboard!");
+				alert(
+					"Shareable link for all collections copied to clipboard!"
+				);
 			})
 			.catch((err) => {
 				console.error("Failed to copy link: ", err);
@@ -127,7 +133,9 @@ const CollectionManager: React.FC = () => {
 						<div className="flex items-center space-x-2">
 							<input
 								type="checkbox"
-								checked={selectedCollections.includes(collection.id)}
+								checked={selectedCollections.includes(
+									collection.id
+								)}
 								onChange={(e) => {
 									if (e.target.checked) {
 										setSelectedCollections([
@@ -136,7 +144,9 @@ const CollectionManager: React.FC = () => {
 										]);
 									} else {
 										setSelectedCollections(
-											selectedCollections.filter((id) => id !== collection.id)
+											selectedCollections.filter(
+												(id) => id !== collection.id
+											)
 										);
 									}
 								}}
@@ -146,11 +156,21 @@ const CollectionManager: React.FC = () => {
 								<input
 									type="text"
 									value={editName}
-									onChange={(e) => setEditName(e.target.value)}
-									onBlur={() => handleNameChange(collection.id, editName)}
+									onChange={(e) =>
+										setEditName(e.target.value)
+									}
+									onBlur={() =>
+										handleNameChange(
+											collection.id,
+											editName
+										)
+									}
 									onKeyPress={(e) => {
 										if (e.key === "Enter") {
-											handleNameChange(collection.id, editName);
+											handleNameChange(
+												collection.id,
+												editName
+											);
 										}
 									}}
 									className="border rounded px-2 py-1 text-gray-900 dark:text-white bg-white dark:bg-gray-700"
@@ -163,7 +183,8 @@ const CollectionManager: React.FC = () => {
 									}}
 									className="cursor-pointer text-gray-900 dark:text-white"
 								>
-									{collection.name} ({collection.entities.length})
+									{collection.name} (
+									{collection.entities.length})
 								</span>
 							)}
 						</div>
@@ -190,7 +211,9 @@ const CollectionManager: React.FC = () => {
 								<Scissors size={18} />
 							</button>
 							<button
-								onClick={() => handleShareCollection(collection.id)}
+								onClick={() =>
+									handleShareCollection(collection.id)
+								}
 								className="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-200"
 							>
 								<Share2 size={18} />

@@ -23,16 +23,19 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 	});
 	const [activeCollectionId, setActiveCollectionId] = useState<string>("1");
 	const [selectedEntity, setSelectedEntity] = useState<Entity | null>(null);
-	const [collectedEntities, setCollectedEntities] = useState<CollectedEntity[]>(
-		[]
-	);
+	const [collectedEntities, setCollectedEntities] = useState<
+		CollectedEntity[]
+	>([]);
 	const [themeMode, setThemeMode] = useState<ThemeMode>(() => {
 		const savedThemeMode = localStorage.getItem("themeMode") as ThemeMode;
 		return savedThemeMode || "auto";
 	});
 	const [searchWhileTyping, setSearchWhileTyping] = useState<boolean>(() => {
-		const savedSearchWhileTyping = localStorage.getItem("searchWhileTyping");
-		return savedSearchWhileTyping ? JSON.parse(savedSearchWhileTyping) : true;
+		const savedSearchWhileTyping =
+			localStorage.getItem("searchWhileTyping");
+		return savedSearchWhileTyping
+			? JSON.parse(savedSearchWhileTyping)
+			: true;
 	});
 
 	useEffect(() => {
@@ -125,7 +128,9 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 								type = "unknown";
 						}
 						const entityDetails = await getEntityDetails(entity.id);
-						const relatedNodes = await getRelatedEntities(entity.id);
+						const relatedNodes = await getRelatedEntities(
+							entity.id
+						);
 						setCollections((prevCollections) =>
 							prevCollections.map((c) =>
 								c.id === collection.id
@@ -133,7 +138,11 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 											...c,
 											entities: c.entities.map((e) =>
 												e.id === entity.id
-													? { ...entityDetails, related_nodes: relatedNodes }
+													? {
+															...entityDetails,
+															related_nodes:
+																relatedNodes,
+													  }
 													: e
 											),
 									  }
@@ -151,7 +160,9 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 		} else if (sharedIds) {
 			let targetCollection: Collection;
 			if (sharedTitle) {
-				targetCollection = collections.find((c) => c.name === sharedTitle) || {
+				targetCollection = collections.find(
+					(c) => c.name === sharedTitle
+				) || {
 					id: Date.now().toString(),
 					name: sharedTitle,
 					entities: [],
@@ -174,7 +185,9 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 			);
 			setCollections((prevCollections) =>
 				prevCollections.map((c) =>
-					c.id === targetCollection.id ? { ...c, entities: mergedEntities } : c
+					c.id === targetCollection.id
+						? { ...c, entities: mergedEntities }
+						: c
 				)
 			);
 			setActiveCollectionId(targetCollection.id);
@@ -220,7 +233,9 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 								type = "unknown";
 						}
 						const entityDetails = await getEntityDetails(entity.id);
-						const relatedNodes = await getRelatedEntities(entity.id);
+						const relatedNodes = await getRelatedEntities(
+							entity.id
+						);
 						setCollections((prevCollections) =>
 							prevCollections.map((c) =>
 								c.id === targetCollection.id
@@ -228,7 +243,11 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 											...c,
 											entities: c.entities.map((e) =>
 												e.id === entity.id
-													? { ...entityDetails, related_nodes: relatedNodes }
+													? {
+															...entityDetails,
+															related_nodes:
+																relatedNodes,
+													  }
 													: e
 											),
 									  }
@@ -272,7 +291,8 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 	const exportCollections = () => {
 		const dataStr = JSON.stringify(collections);
 		const dataUri =
-			"data:application/json;charset=utf-8," + encodeURIComponent(dataStr);
+			"data:application/json;charset=utf-8," +
+			encodeURIComponent(dataStr);
 		const exportFileDefaultName = "collections.json";
 		const linkElement = document.createElement("a");
 		linkElement.setAttribute("href", dataUri);
@@ -292,15 +312,17 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 						...mergedCollections[existingCollectionIndex].entities,
 						...importedCollection.entities.filter(
 							(entity) =>
-								!mergedCollections[existingCollectionIndex].entities.some(
-									(e) => e.id === entity.id
-								)
+								!mergedCollections[
+									existingCollectionIndex
+								].entities.some((e) => e.id === entity.id)
 						),
 					];
 				} else {
 					mergedCollections.push({
 						...importedCollection,
-						id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+						id:
+							Date.now().toString() +
+							Math.random().toString(36).substr(2, 9),
 					});
 				}
 			});
@@ -312,7 +334,9 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 		setCollections(
 			importedCollections.map((collection) => ({
 				...collection,
-				id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+				id:
+					Date.now().toString() +
+					Math.random().toString(36).substr(2, 9),
 			}))
 		);
 		setActiveCollectionId(importedCollections[0]?.id || "1");
@@ -356,7 +380,9 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 	};
 
 	const cloneCollection = (collectionId: string) => {
-		const collectionToClone = collections.find((c) => c.id === collectionId);
+		const collectionToClone = collections.find(
+			(c) => c.id === collectionId
+		);
 		if (collectionToClone) {
 			const clonedCollection: Collection = {
 				...collectionToClone,
@@ -369,7 +395,9 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 	};
 
 	const splitCollection = (collectionId: string, entityIds: string[]) => {
-		const collectionToSplit = collections.find((c) => c.id === collectionId);
+		const collectionToSplit = collections.find(
+			(c) => c.id === collectionId
+		);
 		if (collectionToSplit) {
 			const remainingEntities = collectionToSplit.entities.filter(
 				(e) => !entityIds.includes(e.id)

@@ -20,7 +20,9 @@ const SearchResults: React.FC<SearchResultsProps> = ({
 
 	const handleCollect = async (result: SearchResult) => {
 		try {
-			console.log(`Collecting entity: ${result.id} (${result.entity_type})`);
+			console.log(
+				`Collecting entity: ${result.id} (${result.entity_type})`
+			);
 			const normalizedType = result.entity_type.endsWith("s")
 				? result.entity_type.slice(0, -1)
 				: result.entity_type;
@@ -33,16 +35,16 @@ const SearchResults: React.FC<SearchResultsProps> = ({
 				related_nodes: relatedNodes,
 			};
 
-      const updatedCollections = collections.map((collection) =>
-        collection.id === activeCollectionId
-          ? {
-              ...collection,
-              entities: [...collection.entities, newEntity],
-            }
-          : collection
-      );
+			const updatedCollections = collections.map((collection) =>
+				collection.id === activeCollectionId
+					? {
+							...collection,
+							entities: [...collection.entities, newEntity],
+					  }
+					: collection
+			);
 
-      setCollections(updatedCollections);
+			setCollections(updatedCollections);
 
 			console.log("Entity collected successfully:", newEntity);
 		} catch (error) {
@@ -63,18 +65,18 @@ const SearchResults: React.FC<SearchResultsProps> = ({
 	};
 
 	const handleRemove = (id: string) => {
-    const updatedCollections = collections.map((collection) =>
-      collection.id === activeCollectionId
-        ? {
-            ...collection,
-            entities: collection.entities.filter(
-              (entity) => entity.id !== id
-            ),
-          }
-        : collection
-    );
+		const updatedCollections = collections.map((collection) =>
+			collection.id === activeCollectionId
+				? {
+						...collection,
+						entities: collection.entities.filter(
+							(entity) => entity.id !== id
+						),
+				  }
+				: collection
+		);
 
-    setCollections(updatedCollections);
+		setCollections(updatedCollections);
 
 		console.log(`Entity removed: ${id}`);
 	};

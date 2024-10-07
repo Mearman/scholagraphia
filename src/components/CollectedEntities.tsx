@@ -23,11 +23,16 @@ const CollectedEntities: React.FC<CollectedEntitiesProps> = ({
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
 	const menuRef = useRef<HTMLDivElement>(null);
 
-	const activeCollection = collections.find((c) => c.id === activeCollectionId);
+	const activeCollection = collections.find(
+		(c) => c.id === activeCollectionId
+	);
 
 	useEffect(() => {
 		const handleClickOutside = (event: MouseEvent) => {
-			if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+			if (
+				menuRef.current &&
+				!menuRef.current.contains(event.target as Node)
+			) {
 				setIsMenuOpen(false);
 			}
 		};
@@ -84,7 +89,9 @@ const CollectedEntities: React.FC<CollectedEntitiesProps> = ({
 		<div className="mt-8">
 			<div className="flex justify-between items-center mb-4">
 				<h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-					{activeCollection ? activeCollection.name : "No Collection Selected"}
+					{activeCollection
+						? activeCollection.name
+						: "No Collection Selected"}
 				</h2>
 				<div className="relative" ref={menuRef}>
 					<button
