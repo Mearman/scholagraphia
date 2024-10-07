@@ -1,16 +1,10 @@
-import {
-  FileDown,
-  FileUp,
-  MoreVertical,
-  Trash2,
-  Upload
-} from "lucide-react";
+import { FileDown, FileUp, MoreVertical, Trash2, Upload } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import { useAppContext } from "../context/AppContext";
 import EntityCard from "./EntityCard";
 
 interface CollectedEntitiesProps {
-	onShowRelated: (relatedIds: string[]) => void;
+	onShowRelated: (relatedIds: string) => void;
 }
 
 const CollectedEntities: React.FC<CollectedEntitiesProps> = ({
@@ -45,8 +39,8 @@ const CollectedEntities: React.FC<CollectedEntitiesProps> = ({
 	}, []);
 
 	const handleRemove = (id: string) => {
-		setCollections((prevCollections) =>
-			prevCollections.map((collection) =>
+		setCollections(
+			collections.map((collection) =>
 				collection.id === activeCollectionId
 					? {
 							...collection,

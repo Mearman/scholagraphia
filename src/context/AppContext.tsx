@@ -1,17 +1,15 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { getEntityDetails, getRelatedEntities } from "../api/openAlex";
 import {
-  AppContextType,
-  AppProviderProps,
-  Collection,
-  Entity,
-  SearchResult,
-  ThemeMode
+	AppContextType,
+	AppProviderProps,
+	CollectedEntity,
+	Collection,
+	Entity,
+	SearchResult,
+	ThemeMode,
 } from "../types";
-import {
-  mergeSharedIds,
-  parseSharedIds
-} from "../utils/idSharing";
+import { mergeSharedIds, parseSharedIds } from "../utils/idSharing";
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
@@ -25,6 +23,9 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 	});
 	const [activeCollectionId, setActiveCollectionId] = useState<string>("1");
 	const [selectedEntity, setSelectedEntity] = useState<Entity | null>(null);
+	const [collectedEntities, setCollectedEntities] = useState<CollectedEntity[]>(
+		[]
+	);
 	const [themeMode, setThemeMode] = useState<ThemeMode>(() => {
 		const savedThemeMode = localStorage.getItem("themeMode") as ThemeMode;
 		return savedThemeMode || "auto";
@@ -69,7 +70,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 		} = parseSharedIds(window.location.href);
 
 		if (sharedCollections) {
-			const newCollections = sharedCollections.map(
+			const newCollections: Collection[] = sharedCollections.map(
 				(sharedCollection, index) => ({
 					id: Date.now().toString() + index,
 					name: sharedCollection.name,
@@ -123,8 +124,8 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 							default:
 								type = "unknown";
 						}
-						const entityDetails = await getEntityDetails(entity.id, type);
-						const relatedNodes = await getRelatedEntities(entity.id, type);
+						const entityDetails = await getEntityDetails(entity.id);
+						const relatedNodes = await getRelatedEntities(entity.id);
 						setCollections((prevCollections) =>
 							prevCollections.map((c) =>
 								c.id === collection.id
@@ -218,8 +219,8 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 							default:
 								type = "unknown";
 						}
-						const entityDetails = await getEntityDetails(entity.id, type);
-						const relatedNodes = await getRelatedEntities(entity.id, type);
+						const entityDetails = await getEntityDetails(entity.id);
+						const relatedNodes = await getRelatedEntities(entity.id);
 						setCollections((prevCollections) =>
 							prevCollections.map((c) =>
 								c.id === targetCollection.id
@@ -415,11 +416,13 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 				createNewCollection,
 				mergeCollections,
 				cloneCollection,
-				splitCollection,
+				collectedEntities,
+				setCollectedEntities,
 				themeMode,
 				cycleTheme,
 				searchWhileTyping,
 				toggleSearchWhileTyping,
+				splitCollection,
 			}}
 		>
 			{children}

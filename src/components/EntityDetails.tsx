@@ -1,6 +1,7 @@
 import { Check, Plus } from "lucide-react";
 import React from "react";
 import { useAppContext } from "../context/AppContext";
+import { Entity } from "../types";
 
 const EntityDetails: React.FC = () => {
 	const { selectedEntity, collectedEntities, setCollectedEntities } =
@@ -9,7 +10,7 @@ const EntityDetails: React.FC = () => {
 	if (!selectedEntity) return null;
 
 	const isCollected = collectedEntities.some(
-		(entity) => entity.id === selectedEntity.id
+		(entity: Entity) => entity.id === selectedEntity.id
 	);
 
 	const handleCollect = () => {

@@ -7,7 +7,7 @@ import Spinner from "./Spinner";
 
 interface SearchResultsProps {
 	searchResults: SearchResult[];
-	onShowRelated: (relatedIds: string[]) => void;
+	onShowRelated: (relatedId: string) => void;
 	isLoading: boolean;
 }
 
@@ -24,22 +24,26 @@ const SearchResults: React.FC<SearchResultsProps> = ({
 			const normalizedType = result.entity_type.endsWith("s")
 				? result.entity_type.slice(0, -1)
 				: result.entity_type;
-			const entityDetails = await getEntityDetails(result.id, normalizedType);
+			const entityDetails = await getEntityDetails(result.id);
 			console.log("Entity details fetched:", entityDetails);
-			const relatedNodes = await getRelatedEntities(result.id, normalizedType);
+			const relatedNodes = await getRelatedEntities(result.id);
 			console.log("Related nodes fetched:", relatedNodes);
 			const newEntity: CollectedEntity = {
 				...entityDetails,
 				related_nodes: relatedNodes,
 			};
 
-			setCollections((prevCollections) =>
-				prevCollections.map((collection) =>
-					collection.id === activeCollectionId
-						? { ...collection, entities: [...collection.entities, newEntity] }
-						: collection
-				)
-			);
+      const updatedCollections = collections.map((collection) =>
+        collection.id === activeCollectionId
+          ? {
+              ...collection,
+              entities: [...collection.entities, newEntity],
+            }
+          : collection
+      );
+
+      setCollections(updatedCollections);
+
 			console.log("Entity collected successfully:", newEntity);
 		} catch (error) {
 			console.error("Error collecting entity:", error);
@@ -59,18 +63,19 @@ const SearchResults: React.FC<SearchResultsProps> = ({
 	};
 
 	const handleRemove = (id: string) => {
-		setCollections((prevCollections) =>
-			prevCollections.map((collection) =>
-				collection.id === activeCollectionId
-					? {
-							...collection,
-							entities: collection.entities.filter(
-								(entity) => entity.id !== id
-							),
-					  }
-					: collection
-			)
-		);
+    const updatedCollections = collections.map((collection) =>
+      collection.id === activeCollectionId
+        ? {
+            ...collection,
+            entities: collection.entities.filter(
+              (entity) => entity.id !== id
+            ),
+          }
+        : collection
+    );
+
+    setCollections(updatedCollections);
+
 		console.log(`Entity removed: ${id}`);
 	};
 

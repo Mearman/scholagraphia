@@ -1,16 +1,21 @@
 import { ReactNode } from "react";
 
+const EntityType = {
+	Work: "work",
+	author: "author",
+	institution: "institution",
+	concept: "concept",
+	source: "source",
+	country: "country",
+	license: "license",
+	unknown: "unknown",
+} as const;
+type EntityType = (typeof EntityType)[keyof typeof EntityType];
+export { EntityType };
 export interface Entity {
 	id: string;
 	display_name: string;
-	type:
-		| "work"
-		| "author"
-		| "institution"
-		| "concept"
-		| "source"
-		| "country"
-		| "license";
+	type: EntityType;
 }
 
 export interface SearchResult {
@@ -23,6 +28,15 @@ export interface RelatedNode {
 	id: string;
 	display_name: string;
 	type: string;
+}
+
+export function isCollectedEntity(
+	something: unknown
+): something is CollectedEntity {
+	return (something as CollectedEntity).related_nodes !== undefined;
+}
+export function isCollection(something: unknown): something is Collection {
+	return (something as Collection).id !== undefined;
 }
 
 export interface CollectedEntity extends Entity {
@@ -41,7 +55,6 @@ export interface AppContextType {
 	searchResults: SearchResult[];
 	setSearchResults: (results: SearchResult[]) => void;
 	collections: Collection[];
-	setCollections: (collections: Collection[]) => void;
 	activeCollectionId: string;
 	setActiveCollectionId: (id: string) => void;
 	selectedEntity: Entity | null;
@@ -58,6 +71,9 @@ export interface AppContextType {
 	cycleTheme: () => void;
 	searchWhileTyping: boolean;
 	toggleSearchWhileTyping: () => void;
+	collectedEntities: CollectedEntity[];
+	setCollectedEntities: (entities: CollectedEntity[]) => void;
+	setCollections: (collections: Collection[]) => void;
 }
 
 export interface AppProviderProps {
