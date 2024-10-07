@@ -1,4 +1,9 @@
-import { EntityType, entityTypeMappings, SearchResult } from "../types";
+import {
+	EntityMetadata,
+	EntityType,
+	entityTypeMappings,
+	SearchResult,
+} from "../types";
 
 const BASE_URL = "https://api.openalex.org";
 
@@ -41,37 +46,7 @@ export const getEntityDetails = async (
 	id: string
 ): Promise<Record<string, unknown>> => {
 	try {
-		const entityId = id.startsWith("https://openalex.org/")
-			? id.split("/").pop()
-			: id;
-		const entityType = entityId?.charAt(0).toUpperCase();
-		let endpoint;
-
-		switch (entityType) {
-			case "W":
-				endpoint = `${BASE_URL}/works/${entityId}`;
-				break;
-			case "A":
-				endpoint = `${BASE_URL}/authors/${entityId}`;
-				break;
-			case "I":
-				endpoint = `${BASE_URL}/institutions/${entityId}`;
-				break;
-			case "C":
-				endpoint = `${BASE_URL}/concepts/${entityId}`;
-				break;
-			case "V":
-				endpoint = `${BASE_URL}/venues/${entityId}`;
-				break;
-			case "P":
-				endpoint = `${BASE_URL}/publishers/${entityId}`;
-				break;
-			case "F":
-				endpoint = `${BASE_URL}/funders/${entityId}`;
-				break;
-			default:
-				throw new Error(`Unsupported entity type: ${entityType}`);
-		}
+		const endpoint = apiUrlForUri(id);
 
 		console.log(`Fetching entity details from: ${endpoint}`);
 
@@ -146,8 +121,8 @@ export const getRelatedEntities = async (
 	}
 };
 
-export const OpenAlexUriRegex: RegExp =
-	/(?:https?:\/\/(?:openalex\.org|api\.openalex\.org)\/)?(?:[a-zA-Z]+\/)?([A-Za-z]\d{5,9})(?:\/|\?|$)/;
+export const openAlexUriRegex: RegExp =
+	/(?:https?:\/\/(?:openalex\.org|api\.openalex\.org)\/)?(?:[a-zA-Z]+\/)?([A-Za-z]\d{3,})(?:\/|\?|$)/;
 
 /**
  * Extracts the entity ID from an OpenAlex URI.
@@ -156,18 +131,34 @@ export const OpenAlexUriRegex: RegExp =
  * @throws An error if the URI is invalid.
  */
 export function idFromUri(uri: string): string {
-	const match = uri.match(OpenAlexUriRegex);
+	const match: RegExpMatchArray = openAlexUriRegex.exec(uri)!;
 	if (match && match[1]) {
 		return match[1].toUpperCase(); // The first capture group is the TYPE_CHAR and ENTITY_ID
 	}
-	throw new Error("Invalid OpenAlex URI");
+	throw new Error(`Invalid OpenAlex URI: "${uri}"`);
 }
 
 export function typeFromUri(uri: string): EntityType | "unknown" {
 	return (
 		entityTypeMappings.find(
 			(mapping) =>
-				mapping.TYPE_CHAR === idFromUri(uri).charAt(0).toUpperCase()
+				mapping.TYPE_CHAR.toUpperCase() === idFromUri(uri).charAt(0).toUpperCase()
 		)?.ENTITY_TYPE || "unknown"
 	);
+}
+
+export function getEntityMetadataForUri(uri: string): EntityMetadata {
+	const entityType = typeFromUri(uri);
+	const metadata = entityTypeMappings.find(
+		(mapping) => mapping.ENTITY_TYPE === entityType
+	);
+	if (!metadata) {
+		throw new Error(`No metadata found for entity type: ${entityType}`);
+	}
+	return metadata;
+}
+
+export function apiUrlForUri(uri: string): string {
+	const metadata = getEntityMetadataForUri(uri);
+	return `${BASE_URL}/${metadata.ENTITY_ENDPOINT}/${idFromUri(uri)}`;
 }

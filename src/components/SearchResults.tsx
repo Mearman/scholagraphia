@@ -5,7 +5,7 @@ import {
 	typeFromUri,
 } from "../api/openAlex";
 import { useAppContext } from "../context/AppContext";
-import { CollectedEntity, EntityType, SearchResult } from "../types";
+import { CollectedEntity, SearchResult } from "../types";
 import EntityCard from "./EntityCard";
 import Spinner from "./Spinner";
 

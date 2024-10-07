@@ -45,11 +45,13 @@ const EntityCharacter: Record<EntityType, string> = {
 
 type EntityCharacter = (typeof EntityCharacter)[keyof typeof EntityCharacter];
 
-export const entityTypeMappings: {
+export type EntityMetadata = {
 	ENTITY_TYPE: EntityType;
 	ENTITY_ENDPOINT: EntityEndpointPath;
 	TYPE_CHAR: string;
-}[] = Object.entries(EntityType).map(
+};
+
+export const entityTypeMappings: EntityMetadata[] = Object.entries(EntityType).map(
 	([, value]: [string, EntityType]): {
 		ENTITY_TYPE: EntityType;
 		ENTITY_ENDPOINT: EntityEndpointPath;
@@ -61,24 +63,25 @@ export const entityTypeMappings: {
 	})
 );
 
+
 export { EntityCharacter, EntityEndpointPath, EntityType };
 
 export interface Entity {
 	id: string;
 	display_name: string;
-	type: EntityType;
+	type: EntityType | "unknown";
 }
 
 export interface SearchResult {
 	id: string;
 	display_name: string;
-	entity_type: string;
+	entity_type: EntityType | "unknown";
 }
 
 export interface RelatedNode {
 	id: string;
 	display_name: string;
-	type: string;
+	type: EntityType | "unknown";
 }
 
 export function isCollectedEntity(
