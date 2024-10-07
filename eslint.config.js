@@ -4,6 +4,7 @@ import reactRefresh from "eslint-plugin-react-refresh";
 import globals from "globals";
 import tseslint from "typescript-eslint";
 
+/* eslint-disable @typescript-eslint/no-unused-vars */
 const original = tseslint.config(
 	{ ignores: ["dist"] },
 	{
