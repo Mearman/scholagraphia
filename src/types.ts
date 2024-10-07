@@ -51,7 +51,9 @@ export type EntityMetadata = {
 	TYPE_CHAR: string;
 };
 
-export const entityTypeMappings: EntityMetadata[] = Object.entries(EntityType).map(
+export const entityTypeMappings: EntityMetadata[] = Object.entries(
+	EntityType
+).map(
 	([, value]: [string, EntityType]): {
 		ENTITY_TYPE: EntityType;
 		ENTITY_ENDPOINT: EntityEndpointPath;
@@ -62,7 +64,6 @@ export const entityTypeMappings: EntityMetadata[] = Object.entries(EntityType).m
 		TYPE_CHAR: EntityCharacter[value]!,
 	})
 );
-
 
 export { EntityCharacter, EntityEndpointPath, EntityType };
 

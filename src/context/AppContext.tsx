@@ -61,8 +61,8 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 				updateTheme("auto");
 			}
 		};
-		mediaQuery.addListener(handleChange);
-		return () => mediaQuery.removeListener(handleChange);
+		mediaQuery.addEventListener("change", handleChange);
+		return () => mediaQuery.removeEventListener("change", handleChange);
 	}, [themeMode]);
 
 	useEffect(() => {
@@ -87,40 +87,6 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 			);
 			setCollections(newCollections);
 			setActiveCollectionId(newCollections[0].id);
-
-			newCollections.forEach((collection) => {
-				collection.entities.forEach(async (entity) => {
-					try {
-						const entityDetails = await getEntityDetails(entity.id);
-						const relatedNodes = await getRelatedEntities(
-							entity.id
-						);
-						setCollections((prevCollections) =>
-							prevCollections.map((c) =>
-								c.id === collection.id
-									? {
-											...c,
-											entities: c.entities.map((e) =>
-												e.id === entity.id
-													? {
-															...entityDetails,
-															related_nodes:
-																relatedNodes,
-													  }
-													: e
-											),
-									  }
-									: c
-							)
-						);
-					} catch (error) {
-						console.error(
-							`Error fetching details for entity ${entity.id}:`,
-							error
-						);
-					}
-				});
-			});
 		} else if (sharedIds) {
 			let targetCollection: Collection;
 			if (sharedTitle) {
@@ -155,43 +121,56 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 				)
 			);
 			setActiveCollectionId(targetCollection.id);
-
-			// Fetch details for new entities
-			mergedEntities.forEach(async (entity) => {
-				if (entity.type === "unknown") {
-					try {
-						const entityDetails = await getEntityDetails(entity.id);
-						const relatedNodes = await getRelatedEntities(
-							entity.id
-						);
-						setCollections((prevCollections) =>
-							prevCollections.map((c) =>
-								c.id === targetCollection.id
-									? {
-											...c,
-											entities: c.entities.map((e) =>
-												e.id === entity.id
-													? {
-															...entityDetails,
-															related_nodes:
-																relatedNodes,
-													  }
-													: e
-											),
-									  }
-									: c
-							)
-						);
-					} catch (error) {
-						console.error(
-							`Error fetching details for entity ${entity.id}:`,
-							error
-						);
-					}
-				}
-			});
 		}
-	}, []);
+	}, [activeCollectionId]);
+
+	useEffect(() => {
+		const fetchEntityDetails = async (collection: Collection) => {
+			for (const entity of collection.entities) {
+				try {
+					const entityDetails = await getEntityDetails(entity.id);
+					const relatedNodes = await getRelatedEntities(entity.id);
+					setCollections((prevCollections) => {
+						return prevCollections.map((c) => {
+							if (c.id === collection.id) {
+								return {
+									...c,
+									entities: c.entities.map((e) => {
+										if (e.id === entity.id) {
+											return {
+												...entityDetails,
+												related_nodes: relatedNodes.map(
+													(node) => ({
+														...node,
+														type: node.entity_type,
+													})
+												),
+												id: entity.id,
+												display_name:
+													entity.display_name,
+												type: entity.type,
+											};
+										}
+										return e;
+									}),
+								};
+							}
+							return c;
+						});
+					});
+				} catch (error) {
+					console.error(
+						`Error fetching details for entity ${entity.id}:`,
+						error
+					);
+				}
+			}
+		};
+
+		collections.forEach((collection) => {
+			fetchEntityDetails(collection);
+		});
+	}, [collections]);
 
 	const updateTheme = (mode: ThemeMode) => {
 		if (
