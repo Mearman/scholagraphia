@@ -1,5 +1,9 @@
 import React from "react";
-import { getEntityDetails, getRelatedEntities } from "../api/openAlex";
+import {
+	getEntityDetails,
+	getRelatedEntities,
+	typeFromUri,
+} from "../api/openAlex";
 import { useAppContext } from "../context/AppContext";
 import { CollectedEntity, EntityType, SearchResult } from "../types";
 import EntityCard from "./EntityCard";
@@ -35,7 +39,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({
 				})),
 				id: result.id,
 				display_name: result.display_name,
-				type: typeFromId(result.id),
+				type: typeFromUri(result.id),
 			};
 
 			const updatedCollections = collections.map((collection) =>
