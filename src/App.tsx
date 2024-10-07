@@ -16,7 +16,7 @@ import { SearchResult } from "./types";
 const AppContent: React.FC = () => {
 	const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
 	const [isLoading, setIsLoading] = useState(false);
-	const { collections, activeCollectionId, setCollections } = useAppContext();
+	const { collections, setCollections } = useAppContext();
 	const [currentQuery, setCurrentQuery] = useState("");
 	const [currentEntityType, setCurrentEntityType] = useState("all");
 	const [error, setError] = useState<string | null>(null);

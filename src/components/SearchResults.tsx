@@ -23,9 +23,6 @@ const SearchResults: React.FC<SearchResultsProps> = ({
 			console.log(
 				`Collecting entity: ${result.id} (${result.entity_type})`
 			);
-			const normalizedType = result.entity_type.endsWith("s")
-				? result.entity_type.slice(0, -1)
-				: result.entity_type;
 			const entityDetails = await getEntityDetails(result.id);
 			console.log("Entity details fetched:", entityDetails);
 			const relatedNodes = await getRelatedEntities(result.id);
