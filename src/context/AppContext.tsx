@@ -32,7 +32,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 	});
 	const [searchWhileTyping, setSearchWhileTyping] = useState<boolean>(() => {
 		const savedSearchWhileTyping = localStorage.getItem("searchWhileTyping");
-		return savedSearchWhileTyping ? JSON.parse(savedSearchWhileTyping) : false;
+		return savedSearchWhileTyping ? JSON.parse(savedSearchWhileTyping) : true;
 	});
 
 	useEffect(() => {
