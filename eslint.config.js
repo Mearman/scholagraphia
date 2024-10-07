@@ -1,4 +1,7 @@
-import eslint from "@eslint/js";
+import { default as eslint, default as js } from "@eslint/js";
+import reactHooks from "eslint-plugin-react-hooks";
+import reactRefresh from "eslint-plugin-react-refresh";
+import globals from "globals";
 import tseslint from "typescript-eslint";
 
 const original = tseslint.config(
