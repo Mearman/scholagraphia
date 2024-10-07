@@ -91,42 +91,6 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 			newCollections.forEach((collection) => {
 				collection.entities.forEach(async (entity) => {
 					try {
-						const entityType = entity.id.split("/")[3].charAt(0);
-						let type = "";
-						switch (entityType.toLowerCase()) {
-							case "w":
-								type = "work";
-								break;
-							case "a":
-								type = "author";
-								break;
-							case "v":
-								type = "venue";
-								break;
-							case "i":
-								type = "institution";
-								break;
-							case "c":
-								type = "concept";
-								break;
-							case "p":
-								type = "publisher";
-								break;
-							case "s":
-								type = "source";
-								break;
-							case "f":
-								type = "funder";
-								break;
-							case "g":
-								type = "country";
-								break;
-							case "t":
-								type = "topic";
-								break;
-							default:
-								type = "unknown";
-						}
 						const entityDetails = await getEntityDetails(entity.id);
 						const relatedNodes = await getRelatedEntities(
 							entity.id
@@ -197,41 +161,8 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 				if (entity.type === "unknown") {
 					try {
 						const entityType = entity.id.split("/")[3].charAt(0);
-						let type = "";
-						switch (entityType.toLowerCase()) {
-							case "w":
-								type = "work";
-								break;
-							case "a":
-								type = "author";
-								break;
-							case "v":
-								type = "venue";
-								break;
-							case "i":
-								type = "institution";
-								break;
-							case "c":
-								type = "concept";
-								break;
-							case "p":
-								type = "publisher";
-								break;
-							case "s":
-								type = "source";
-								break;
-							case "f":
-								type = "funder";
-								break;
-							case "g":
-								type = "country";
-								break;
-							case "t":
-								type = "topic";
-								break;
-							default:
-								type = "unknown";
-						}
+						let type = 
+
 						const entityDetails = await getEntityDetails(entity.id);
 						const relatedNodes = await getRelatedEntities(
 							entity.id

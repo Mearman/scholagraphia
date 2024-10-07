@@ -1,7 +1,7 @@
 import React from "react";
 import { getEntityDetails, getRelatedEntities } from "../api/openAlex";
 import { useAppContext } from "../context/AppContext";
-import { CollectedEntity, SearchResult } from "../types";
+import { CollectedEntity, EntityType, SearchResult } from "../types";
 import EntityCard from "./EntityCard";
 import Spinner from "./Spinner";
 
@@ -29,7 +29,13 @@ const SearchResults: React.FC<SearchResultsProps> = ({
 			console.log("Related nodes fetched:", relatedNodes);
 			const newEntity: CollectedEntity = {
 				...entityDetails,
-				related_nodes: relatedNodes,
+				related_nodes: relatedNodes.map((node) => ({
+					...node,
+					type: node.entity_type, // Assuming entity_type is the correct field for type
+				})),
+				id: result.id,
+				display_name: result.display_name,
+				type: typeFromId(result.id),
 			};
 
 			const updatedCollections = collections.map((collection) =>

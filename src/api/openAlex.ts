@@ -1,4 +1,4 @@
-import { SearchResult } from "../types";
+import { EntityType, SearchResult } from "../types";
 
 const BASE_URL = "https://api.openalex.org";
 
@@ -20,18 +20,26 @@ export const searchEntities = async (
 			throw new Error(`HTTP error! status: ${response.status}`);
 		}
 		const data = await response.json();
-		return data.results.map((result: any) => ({
-			id: result.id,
-			display_name: result.display_name,
-			entity_type: type === "all" ? result.entity_type : type,
-		}));
+		return data.results.map(
+			(result: {
+				id: string;
+				display_name: string;
+				entity_type: string;
+			}) => ({
+				id: result.id,
+				display_name: result.display_name,
+				entity_type: type === "all" ? result.entity_type : type,
+			})
+		);
 	} catch (error) {
 		console.error("Error fetching search results:", error);
 		return [];
 	}
 };
 
-export const getEntityDetails = async (id: string): Promise<any> => {
+export const getEntityDetails = async (
+	id: string
+): Promise<Record<string, unknown>> => {
 	try {
 		const entityId = id.startsWith("https://openalex.org/")
 			? id.split("/").pop()
@@ -90,7 +98,10 @@ export const getRelatedEntities = async (
 		let relatedEntities: SearchResult[] = [];
 
 		// Add authors
-		if (entityDetails.authorships) {
+		if (
+			entityDetails.authorships &&
+			Array.isArray(entityDetails.authorships)
+		) {
 			relatedEntities = relatedEntities.concat(
 				entityDetails.authorships.map((authorship: any) => ({
 					id: authorship.author.id,
@@ -101,7 +112,7 @@ export const getRelatedEntities = async (
 		}
 
 		// Add concepts
-		if (entityDetails.concepts) {
+		if (entityDetails.concepts && Array.isArray(entityDetails.concepts)) {
 			relatedEntities = relatedEntities.concat(
 				entityDetails.concepts.map((concept: any) => ({
 					id: concept.id,
@@ -112,7 +123,10 @@ export const getRelatedEntities = async (
 		}
 
 		// Add institutions
-		if (entityDetails.institutions) {
+		if (
+			entityDetails.institutions &&
+			Array.isArray(entityDetails.institutions)
+		) {
 			relatedEntities = relatedEntities.concat(
 				entityDetails.institutions.map((institution: any) => ({
 					id: institution.id,
@@ -131,3 +145,72 @@ export const getRelatedEntities = async (
 		throw error;
 	}
 };
+
+export function entityTypeFromUri(uri: string): EntityType {
+	const id = idFromUri(uri);
+	const entityType = id.charAt(0);
+	switch (entityType) {
+		case "W":
+			return "work";
+		case "A":
+			return "author";
+		case "I":
+			return "institution";
+		case "C":
+			return "concept";
+		default:
+			return "unknown";
+	}
+}
+
+export const OpenAlexUriRegex: RegExp =
+	/(?:https?:\/\/(?:openalex\.org|api\.openalex\.org)\/)?(?:[a-zA-Z]+\/)?([A-Za-z]\d{5,9})(?:\/|\?|$)/;
+
+/**
+ * Extracts the entity ID from an OpenAlex URI.
+ * @param uri The OpenAlex URI to extract the ID from.
+ * @returns The entity ID extracted from the URI.
+ * @throws An error if the URI is invalid.
+ */
+export function idFromUri(uri: string): string {
+	const match = uri.match(OpenAlexUriRegex);
+	if (match && match[1]) {
+		return match[1]; // The first capture group is the TYPE_CHAR and ENTITY_ID
+	}
+	throw new Error("Invalid OpenAlex URI");
+}
+
+export const entityTypeMappings = [
+	{
+		ENTITY_TYPE: "works",
+		TYPE_CHAR: "w",
+	},
+	{
+		ENTITY_TYPE: "authors",
+		TYPE_CHAR: "a",
+	},
+	{
+		ENTITY_TYPE: "institutions",
+		TYPE_CHAR: "i",
+	},
+	{
+		ENTITY_TYPE: "concepts",
+		TYPE_CHAR: "c",
+	},
+	{
+		TYPE_CHAR: "s",
+		ENTITY_TYPE: "sources",
+	},
+	{
+		ENTITY_TYPE: "publishers",
+		TYPE_CHAR: "p",
+	},
+	{
+		ENTITY_TYPE: "funders",
+		TYPE_CHAR: "f",
+	},
+	{
+		ENTITY_TYPE: "topics",
+		TYPE_CHAR: "t",
+	},
+];
