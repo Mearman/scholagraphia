@@ -49,11 +49,17 @@ export const entityTypeMappings: {
 	ENTITY_TYPE: EntityType;
 	ENTITY_ENDPOINT: EntityEndpointPath;
 	TYPE_CHAR: string;
-}[] = Object.entries(EntityType).map(([, value]) => ({
-	ENTITY_TYPE: value,
-	ENTITY_ENDPOINT: EntityEndpointPath[value]!,
-	TYPE_CHAR: EntityCharacter[value]!,
-}));
+}[] = Object.entries(EntityType).map(
+	([, value]: [string, EntityType]): {
+		ENTITY_TYPE: EntityType;
+		ENTITY_ENDPOINT: EntityEndpointPath;
+		TYPE_CHAR: EntityCharacter;
+	} => ({
+		ENTITY_TYPE: value,
+		ENTITY_ENDPOINT: EntityEndpointPath[value]!,
+		TYPE_CHAR: EntityCharacter[value]!,
+	})
+);
 
 export { EntityCharacter, EntityEndpointPath, EntityType };
 
