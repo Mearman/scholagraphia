@@ -160,9 +160,6 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 			mergedEntities.forEach(async (entity) => {
 				if (entity.type === "unknown") {
 					try {
-						const entityType = entity.id.split("/")[3].charAt(0);
-						let type = 
-
 						const entityDetails = await getEntityDetails(entity.id);
 						const relatedNodes = await getRelatedEntities(
 							entity.id
