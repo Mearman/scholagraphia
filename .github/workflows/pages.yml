@@ -1,0 +1,79 @@
+name: Deploy to GitHub Pages
+
+on:
+    push:
+    workflow_dispatch:
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Set up Node.js
+              uses: actions/setup-node@v4
+
+            - name: Install dependencies
+              run: yarn
+
+            - name: Typecheck
+              run: yarn tsc -b
+              continue-on-error: true
+
+            - name: Lint
+              run: yarn lint
+              continue-on-error: true
+
+            - name: Build project
+              run: yarn build --base /${{ github.event.repository.name }}/
+
+            - name: Upload artifact
+              uses: actions/upload-artifact@v4
+              with:
+                  name: dist
+                  path: dist
+
+    # Deploy job
+    deploy:
+        if: github.ref == 'refs/heads/main'
+        # Add a dependency to the build job
+        needs: build
+
+        # Grant GITHUB_TOKEN the permissions required to make a Pages deployment
+        permissions:
+            pages: write # to deploy to Pages
+            id-token: write # to verify the deployment originates from an appropriate source
+
+        # Deploy to the github-pages environment
+        environment:
+            name: github-pages
+            url: ${{ steps.deployment.outputs.page_url }}
+
+        # Specify runner + deployment step
+        runs-on: ubuntu-latest
+        steps:
+            - name: Setup Pages
+              id: pages
+              uses: actions/configure-pages@v5
+              with:
+                  enablement: true
+
+            - name: Download artifact
+              uses: actions/download-artifact@v4
+              with:
+                  name: dist
+                  path: dist
+
+            - name: Upload pages artifact
+              uses: actions/upload-pages-artifact@v3
+              with:
+                  path: dist
+
+            - name: Deploy to GitHub Pages
+              id: deployment
+              uses: actions/deploy-pages@v4
