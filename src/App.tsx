@@ -32,20 +32,34 @@ const AppContent: React.FC = () => {
 		localStorage.setItem("collections", JSON.stringify(collections));
 	}, [collections]);
 
-	useEffect(() => {
-		const params = new URLSearchParams(window.location.search);
-		const query = params.get("q") || "";
-		const entityType = params.get("type") || "all";
-		const relatedId = params.get("related");
+	const handleShowRelated = useCallback(async (entityId: string) => {
+		setIsLoading(true);
+		setError(null);
+		setSearchResults([]);
 
-		if (relatedId) {
-			handleShowRelated(relatedId);
-		} else if (query) {
-			setCurrentQuery(query);
-			setCurrentEntityType(entityType);
-			performSearch(query, entityType);
+		try {
+			const relatedEntities = await getRelatedEntities(entityId);
+			setSearchResults(relatedEntities);
+
+			// Update URL for related entities
+			const url = new URL(window.location.href);
+			url.searchParams.set("related", entityId.split("/").pop() || "");
+			url.searchParams.delete("q");
+			url.searchParams.delete("type");
+			window.history.pushState({}, "", url.toString());
+
+			// Update page title for related entities
+			const entityDetails = await getEntityDetails(entityId);
+			updatePageTitle(`Related to ${entityDetails.display_name}`);
+		} catch (error) {
+			console.error("Error fetching related entities:", error);
+			setError(
+				"An error occurred while fetching related entities. Please try again."
+			);
+		} finally {
+			setIsLoading(false);
 		}
-	}, [setCurrentQuery]);
+	}, []);
 
 	const performSearch = useCallback(
 		async (query: string, entityType: string) => {
@@ -66,6 +80,21 @@ const AppContent: React.FC = () => {
 		},
 		[]
 	);
+
+	useEffect(() => {
+		const params = new URLSearchParams(window.location.search);
+		const query = params.get("q") || "";
+		const entityType = params.get("type") || "all";
+		const relatedId = params.get("related");
+
+		if (relatedId) {
+			handleShowRelated(relatedId);
+		} else if (query) {
+			setCurrentQuery(query);
+			setCurrentEntityType(entityType);
+			performSearch(query, entityType);
+		}
+	}, [setCurrentQuery, handleShowRelated, performSearch]);
 
 	const handleNewSearch = (
 		results: SearchResult[],
@@ -95,35 +124,6 @@ const AppContent: React.FC = () => {
 	const updatePageTitle = (query: string) => {
 		document.title = query ? `${query} - Scholagraphia` : "Scholagraphia";
 	};
-
-	const handleShowRelated = useCallback(async (entityId: string) => {
-		setIsLoading(true);
-		setError(null);
-		setSearchResults([]);
-
-		try {
-			const relatedEntities = await getRelatedEntities(entityId);
-			setSearchResults(relatedEntities);
-
-			// Update URL for related entities
-			const url = new URL(window.location.href);
-			url.searchParams.set("related", entityId.split("/").pop() || "");
-			url.searchParams.delete("q");
-			url.searchParams.delete("type");
-			window.history.pushState({}, "", url.toString());
-
-			// Update page title for related entities
-			const entityDetails = await getEntityDetails(entityId);
-			updatePageTitle(`Related to ${entityDetails.display_name}`);
-		} catch (error) {
-			console.error("Error fetching related entities:", error);
-			setError(
-				"An error occurred while fetching related entities. Please try again."
-			);
-		} finally {
-			setIsLoading(false);
-		}
-	}, []);
 
 	useEffect(() => {
 		const handlePopState = () => {
