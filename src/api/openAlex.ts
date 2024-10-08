@@ -78,7 +78,7 @@ export const getRelatedEntities = async (
 			Array.isArray(entityDetails.authorships)
 		) {
 			relatedEntities = relatedEntities.concat(
-				entityDetails.authorships.map((authorship: any) => ({
+				entityDetails.authorships.map((authorship) => ({
 					id: authorship.author.id,
 					display_name: authorship.author.display_name,
 					entity_type: "author",
@@ -89,7 +89,7 @@ export const getRelatedEntities = async (
 		// Add concepts
 		if (entityDetails.concepts && Array.isArray(entityDetails.concepts)) {
 			relatedEntities = relatedEntities.concat(
-				entityDetails.concepts.map((concept: any) => ({
+				entityDetails.concepts.map((concept) => ({
 					id: concept.id,
 					display_name: concept.display_name,
 					entity_type: "concept",
@@ -103,7 +103,7 @@ export const getRelatedEntities = async (
 			Array.isArray(entityDetails.institutions)
 		) {
 			relatedEntities = relatedEntities.concat(
-				entityDetails.institutions.map((institution: any) => ({
+				entityDetails.institutions.map((institution) => ({
 					id: institution.id,
 					display_name: institution.display_name,
 					entity_type: "institution",
@@ -142,7 +142,8 @@ export function typeFromUri(uri: string): EntityType | "unknown" {
 	return (
 		entityTypeMappings.find(
 			(mapping) =>
-				mapping.TYPE_CHAR.toUpperCase() === idFromUri(uri).charAt(0).toUpperCase()
+				mapping.TYPE_CHAR.toUpperCase() ===
+				idFromUri(uri).charAt(0).toUpperCase()
 		)?.ENTITY_TYPE || "unknown"
 	);
 }

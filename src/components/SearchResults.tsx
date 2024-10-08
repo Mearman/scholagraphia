@@ -4,8 +4,8 @@ import {
 	getRelatedEntities,
 	typeFromUri,
 } from "../api/openAlex";
-import { useAppContext } from "../context/AppContext";
-import { CollectedEntity, SearchResult } from "../types";
+import { useAppContext } from "../context/useAppContext";
+import { CollectedEntity, Entity, SearchResult } from "../types";
 import EntityCard from "./EntityCard";
 import Spinner from "./Spinner";
 
@@ -102,17 +102,20 @@ const SearchResults: React.FC<SearchResultsProps> = ({
 			<h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">
 				Search Results
 			</h2>
-			{searchResults.map((result) => (
-				<EntityCard
-					key={result.id}
-					entity={result}
-					onCollect={() => handleCollect(result)}
-					onRemove={() => handleRemove(result.id)}
-					isCollected={isCollected(result.id)}
-					showCollectButton={true}
-					onShowRelated={onShowRelated}
-				/>
-			))}
+			{searchResults.map((result: SearchResult) => {
+				const entity = resultToEntity(result);
+				return (
+					<EntityCard
+						key={entity.id}
+						entity={entity}
+						onCollect={() => handleCollect(result)}
+						onRemove={() => handleRemove(entity.id)}
+						isCollected={isCollected(entity.id)}
+						showCollectButton={true}
+						onShowRelated={onShowRelated}
+					/>
+				);
+			})}
 			{isLoading && (
 				<div className="flex justify-center items-center h-32">
 					<Spinner size={32} className="text-blue-500" />
@@ -128,3 +131,11 @@ const SearchResults: React.FC<SearchResultsProps> = ({
 };
 
 export default SearchResults;
+
+function resultToEntity(result: SearchResult): Entity {
+	return {
+		id: result.id,
+		display_name: result.display_name,
+		type: result.entity_type,
+	};
+}

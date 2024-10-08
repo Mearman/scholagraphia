@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useEffect, useState } from "react";
+import { isThemeMode } from "../api/isThemeMode";
 import { getEntityDetails, getRelatedEntities } from "../api/openAlex";
 import {
 	AppContextType,
@@ -11,23 +12,7 @@ import {
 } from "../types";
 import { mergeSharedIds, parseSharedIds } from "../utils/idSharing";
 
-const AppContext = createContext<AppContextType | undefined>(undefined);
-
-export function isThemeMode(
-	mode: string | undefined | null
-): mode is ThemeMode {
-	return mode ? ["light", "dark", "auto"].includes(mode) : false;
-}
-
-export function throwIfFailGuard<T>(
-	value: T,
-	guard: (value: T) => boolean,
-	message: string
-): asserts value is T {
-	if (!guard(value)) {
-		throw new Error(message);
-	}
-}
+export const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 	const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
@@ -138,7 +123,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 			);
 			setActiveCollectionId(targetCollection.id);
 		}
-	}, [activeCollectionId]);
+	}, [activeCollectionId, collections]);
 
 	useEffect(() => {
 		const fetchEntityDetails = async (collection: Collection) => {
@@ -379,12 +364,4 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 			{children}
 		</AppContext.Provider>
 	);
-};
-
-export const useAppContext = () => {
-	const context = useContext(AppContext);
-	if (context === undefined) {
-		throw new Error("useAppContext must be used within an AppProvider");
-	}
-	return context;
 };

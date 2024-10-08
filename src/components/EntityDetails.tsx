@@ -1,6 +1,6 @@
 import { Check, Plus } from "lucide-react";
 import React from "react";
-import { useAppContext } from "../context/AppContext";
+import { useAppContext } from "../context/useAppContext";
 import { Entity } from "../types";
 
 const EntityDetails: React.FC = () => {

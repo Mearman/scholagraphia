@@ -1,7 +1,7 @@
 import { ChevronDown, Search, ToggleLeft, ToggleRight, X } from "lucide-react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { searchEntities } from "../api/openAlex";
-import { useAppContext } from "../context/AppContext";
+import { useAppContext } from "../context/useAppContext";
 import { SearchResult } from "../types";
 
 interface SearchBarProps {

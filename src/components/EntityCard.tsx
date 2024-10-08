@@ -1,8 +1,9 @@
 import { ChevronDown, ChevronUp, Link, Plus, Share2, X } from "lucide-react";
 import React, { useState } from "react";
+import { Entity } from "../types";
 
 interface EntityCardProps {
-	entity: any;
+	entity: Entity;
 	onCollect?: () => void;
 	onRemove?: () => void;
 	isCollected?: boolean;
@@ -22,7 +23,7 @@ const EntityCard: React.FC<EntityCardProps> = ({
 
 	const toggleExpand = () => setExpanded(!expanded);
 
-	const renderValue = (value: any): React.ReactNode => {
+	const renderValue = (value: unknown): React.ReactNode => {
 		if (
 			typeof value === "string" ||
 			typeof value === "number" ||
@@ -139,7 +140,7 @@ const EntityCard: React.FC<EntityCardProps> = ({
 						{Object.entries(entity).map(([key, value]) => (
 							<div key={key} className="mb-2">
 								<span className="font-semibold">{key}:</span>{" "}
-								{renderValue(value as any)}
+								{renderValue(value)}
 							</div>
 						))}
 					</div>

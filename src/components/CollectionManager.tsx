@@ -7,7 +7,7 @@ import {
 	Trash2,
 } from "lucide-react";
 import React, { useState } from "react";
-import { useAppContext } from "../context/AppContext";
+import { useAppContext } from "../context/useAppContext";
 import {
 	generateShareableLink,
 	generateShareableMultiCollectionLink,

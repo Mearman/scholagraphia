@@ -1,6 +1,6 @@
 import { FileDown, FileUp, MoreVertical, Trash2, Upload } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
-import { useAppContext } from "../context/AppContext";
+import { useAppContext } from "../context/useAppContext";
 import EntityCard from "./EntityCard";
 
 interface CollectedEntitiesProps {

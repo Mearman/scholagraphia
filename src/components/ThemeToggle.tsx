@@ -1,6 +1,6 @@
 import { Monitor, Moon, Sun } from "lucide-react";
 import React from "react";
-import { useAppContext } from "../context/AppContext";
+import { useAppContext } from "../context/useAppContext";
 
 const ThemeToggle: React.FC = () => {
 	const { themeMode, cycleTheme } = useAppContext();

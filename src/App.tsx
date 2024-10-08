@@ -10,7 +10,8 @@ import CollectionManager from "./components/CollectionManager";
 import SearchBar from "./components/SearchBar";
 import SearchResults from "./components/SearchResults";
 import ThemeToggle from "./components/ThemeToggle";
-import { AppProvider, useAppContext } from "./context/AppContext";
+import { AppProvider } from "./context/AppContext";
+import { useAppContext } from "./context/useAppContext";
 import { SearchResult } from "./types";
 
 const AppContent: React.FC = () => {
