@@ -1,120 +1,120 @@
 name: Deploy to GitHub Pages
 
 on:
-    push:
-    workflow_dispatch:
+  push:
+  workflow_dispatch:
 
 concurrency:
-    group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}
 
 jobs:
-    configure:
-        runs-on: ubuntu-latest
-        permissions:
-            pages: read
-        steps:
-            - name: Generate a token
-              continue-on-error: true
-              id: generate_token
-              uses: actions/create-github-app-token@v1
-              with:
-                  app-id: ${{ secrets.GH_APP_ID }}
-                  private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
-                  owner: ${{ github.repository_owner }}
-                  repositories: |
-                      ${{ github.event.repository.name }}
+  configure:
+    runs-on: ubuntu-latest
+    permissions:
+      pages: read
+    steps:
+      - name: Generate a token
+        continue-on-error: true
+        id: generate_token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.GH_APP_ID }}
+          private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: |
+            ${{ github.event.repository.name }}
 
-            - name: Setup Pages
-              id: pages
-              uses: actions/configure-pages@v5
-              with:
-                  # enablement: true # requires administration:write and pages:write
-                  enablement: ${{ steps.generate_token.outputs.token && 'true' || 'false' }}
-                  token: ${{ steps.generate_token.outputs.token || github.token }}
-        outputs:
-            base_url: ${{ steps.pages.outputs.base_url }}
-            origin: ${{ steps.pages.outputs.origin }}
-            host: ${{ steps.pages.outputs.host }}
-            base_path: ${{ steps.pages.outputs.base_path }}
+      - name: Setup Pages
+        id: pages
+        uses: actions/configure-pages@v5
+        with:
+          # enablement: true # requires administration:write and pages:write
+          enablement: ${{ steps.generate_token.outputs.token && 'true' || 'false' }}
+          token: ${{ steps.generate_token.outputs.token || github.token }}
+    outputs:
+      base_url: ${{ steps.pages.outputs.base_url }}
+      origin: ${{ steps.pages.outputs.origin }}
+      host: ${{ steps.pages.outputs.host }}
+      base_path: ${{ steps.pages.outputs.base_path }}
 
-    build:
-        runs-on: ubuntu-latest
-        needs:
-            - configure
-        steps:
-            - name: Checkout code
-              uses: actions/checkout@v4
+  build:
+    runs-on: ubuntu-latest
+    needs:
+      - configure
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-            - name: Set up Node.js
-              uses: actions/setup-node@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
 
-            - name: Install dependencies
-              run: yarn
+      - name: Install dependencies
+        run: yarn
 
-            - name: Typecheck
-              run: yarn tsc -b
-              continue-on-error: true
+      - name: Typecheck
+        run: yarn tsc -b
+        continue-on-error: true
 
-            - name: Lint
-              run: yarn lint
-              continue-on-error: true
+      - name: Lint
+        run: yarn lint
+        continue-on-error: true
 
-            - name: Build project
-              run: yarn build --base ${{ needs.configure.outputs.base_path }}
+      - name: Build project
+        run: yarn build --base ${{ needs.configure.outputs.base_path }}
 
-            - name: Upload artifact
-              uses: actions/upload-artifact@v4
-              with:
-                  name: dist
-                  path: dist
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist
 
-    # Deploy job
-    deploy:
-        if: github.ref == 'refs/heads/main'
-        # Add a dependency to the build job
-        needs: build
+  # Deploy job
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    # Add a dependency to the build job
+    needs: build
 
-        # Grant GITHUB_TOKEN the permissions required to make a Pages deployment
-        permissions:
-            pages: write # to deploy to Pages
-            id-token: write # to verify the deployment originates from an appropriate source
+    # Grant GITHUB_TOKEN the permissions required to make a Pages deployment
+    permissions:
+      pages: write # to deploy to Pages
+      id-token: write # to verify the deployment originates from an appropriate source
 
-        # Deploy to the github-pages environment
-        environment:
-            name: github-pages
-            url: ${{ steps.deployment.outputs.page_url }}
+    # Deploy to the github-pages environment
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
 
-        # Specify runner + deployment step
-        runs-on: ubuntu-latest
-        steps:
-            - name: Generate a token
-              id: generate_token
-              uses: actions/create-github-app-token@v1
-              with:
-                  app-id: ${{ secrets.GH_APP_ID }}
-                  private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
-                  owner: ${{ github.repository_owner }}
-                  repositories: |
-                      ${{ github.event.repository.name }}
+    # Specify runner + deployment step
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate a token
+        id: generate_token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.GH_APP_ID }}
+          private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: |
+            ${{ github.event.repository.name }}
 
-            - name: Setup Pages
-              id: pages
-              uses: actions/configure-pages@v5
-              with:
-                  enablement: true # requires administration:write and pages:write
-                  token: ${{ steps.generate_token.outputs.token }}
+      - name: Setup Pages
+        id: pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true # requires administration:write and pages:write
+          token: ${{ steps.generate_token.outputs.token }}
 
-            - name: Download artifact
-              uses: actions/download-artifact@v4
-              with:
-                  name: dist
-                  path: dist
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
 
-            - name: Upload pages artifact
-              uses: actions/upload-pages-artifact@v3
-              with:
-                  path: dist
+      - name: Upload pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
 
-            - name: Deploy to GitHub Pages
-              id: deployment
-              uses: actions/deploy-pages@v4
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
