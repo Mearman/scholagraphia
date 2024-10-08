@@ -46,7 +46,7 @@ jobs:
 
         # Grant GITHUB_TOKEN the permissions required to make a Pages deployment
         permissions:
-            contents: write
+            # contents: write
             pages: write # to deploy to Pages
             id-token: write # to verify the deployment originates from an appropriate source
 
@@ -63,6 +63,7 @@ jobs:
               uses: actions/configure-pages@v5
               with:
                   enablement: true
+                  token: ${{ secrets.GITHUB_TOKEN }}
 
             - name: Download artifact
               uses: actions/download-artifact@v4
