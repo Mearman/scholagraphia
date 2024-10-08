@@ -27,7 +27,7 @@ const AppContent: React.FC = () => {
 		if (savedCollections) {
 			setCollections(JSON.parse(savedCollections));
 		}
-	});
+	}, []); // Only run this effect once on component mount
 
 	useEffect(() => {
 		localStorage.setItem("collections", JSON.stringify(collections));
@@ -95,7 +95,7 @@ const AppContent: React.FC = () => {
 			setCurrentEntityType(entityType);
 			performSearch(query, entityType);
 		}
-	}, [setCurrentQuery, handleShowRelated, performSearch]);
+	}, [handleShowRelated, performSearch]);
 
 	const handleNewSearch = (
 		results: SearchResult[],
