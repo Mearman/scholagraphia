@@ -39,7 +39,8 @@ jobs:
 
     build:
         runs-on: ubuntu-latest
-
+        needs:
+            - configure
         steps:
             - name: Checkout code
               uses: actions/checkout@v4
@@ -59,7 +60,7 @@ jobs:
               continue-on-error: true
 
             - name: Build project
-              run: yarn build --base /${{ github.event.repository.name }}/
+              run: yarn build --base ${{ needs.configure.outputs.base_path }}
 
             - name: Upload artifact
               uses: actions/upload-artifact@v4
