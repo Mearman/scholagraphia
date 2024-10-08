@@ -84,6 +84,7 @@ describe("idFromUri", () => {
 		});
 
 		test("should throw an error for a non-string input", () => {
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			expect(() => idFromUri(123 as any)).toThrow();
 		});
 
