@@ -46,7 +46,6 @@ jobs:
 
         # Grant GITHUB_TOKEN the permissions required to make a Pages deployment
         permissions:
-            contents: write
             pages: write # to deploy to Pages
             id-token: write # to verify the deployment originates from an appropriate source
 
@@ -58,12 +57,19 @@ jobs:
         # Specify runner + deployment step
         runs-on: ubuntu-latest
         steps:
+            - name: Generate a token
+              id: generate_token
+              uses: actions/create-github-app-token@v1
+              with:
+                  app-id: ${{ secrets.GH_APP_ID }}
+                  private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+
             - name: Setup Pages
               id: pages
               uses: actions/configure-pages@v5
               with:
-                  enablement: true
-                  token: ${{ secrets.GITHUB_TOKEN }}
+                  enablement: true # requires administration:write and pages:write
+                  token: ${{ steps.generate_token.outputs.token }}
 
             - name: Download artifact
               uses: actions/download-artifact@v4
