@@ -63,7 +63,7 @@ jobs:
               with:
                   app-id: ${{ secrets.GH_APP_ID }}
                   private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
-                  repositories: ${{ github.event.repository.name }}
+                  repositories: ${{ github.repository }}
 
             - name: Setup Pages
               id: pages
