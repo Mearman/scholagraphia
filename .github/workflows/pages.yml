@@ -8,6 +8,35 @@ concurrency:
     group: ${{ github.workflow }}-${{ github.ref }}
 
 jobs:
+    configure:
+        runs-on: ubuntu-latest
+        permissions:
+            pages: read
+        steps:
+            - name: Generate a token
+              continue-on-error: true
+              id: generate_token
+              uses: actions/create-github-app-token@v1
+              with:
+                  app-id: ${{ secrets.GH_APP_ID }}
+                  private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+                  owner: ${{ github.repository_owner }}
+                  repositories: |
+                      ${{ github.event.repository.name }}
+
+            - name: Setup Pages
+              id: pages
+              uses: actions/configure-pages@v5
+              with:
+                  # enablement: true # requires administration:write and pages:write
+                  enablement: ${{ steps.generate_token.outputs.token && 'true' || 'false' }}
+                  token: ${{ steps.generate_token.outputs.token || github.token }}
+        outputs:
+            base_url: ${{ steps.pages.outputs.base_url }}
+            origin: ${{ steps.pages.outputs.origin }}
+            host: ${{ steps.pages.outputs.host }}
+            base_path: ${{ steps.pages.outputs.base_path }}
+
     build:
         runs-on: ubuntu-latest
 
