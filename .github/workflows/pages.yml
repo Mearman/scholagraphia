@@ -68,7 +68,7 @@ jobs:
         continue-on-error: true
 
       - name: Build project
-        run: yarn build --base ${{ needs.configure.outputs.base_path || '.' }}
+        run: yarn build --base ${{ needs.configure.outputs.base_path || '/' }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
