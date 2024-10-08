@@ -6,6 +6,47 @@ import {
 } from "../types";
 
 const BASE_URL = "https://api.openalex.org";
+const CACHE_EXPIRATION = 30 * 60 * 1000; // 30 minutes in milliseconds
+
+interface CacheItem {
+	data: any;
+	timestamp: number;
+}
+
+const getFromCache = (key: string): any | null => {
+	const item = localStorage.getItem(key);
+	if (!item) return null;
+
+	const { data, timestamp }: CacheItem = JSON.parse(item);
+	if (Date.now() - timestamp > CACHE_EXPIRATION) {
+		localStorage.removeItem(key);
+		return null;
+	}
+
+	return data;
+};
+
+const setToCache = (key: string, data: any) => {
+	const item: CacheItem = { data, timestamp: Date.now() };
+	localStorage.setItem(key, JSON.stringify(item));
+};
+
+const fetchWithCache = async (url: string, options?: RequestInit) => {
+	const cacheKey = `openalex_cache_${url}`;
+	const cachedData = getFromCache(cacheKey);
+
+	if (cachedData) {
+		return cachedData;
+	}
+
+	const response = await fetch(url, options);
+	if (!response.ok) {
+		throw new Error(`HTTP error! status: ${response.status}`);
+	}
+	const data = await response.json();
+	setToCache(cacheKey, data);
+	return data;
+};
 
 export const searchEntities = async (
 	query: string,
@@ -20,11 +61,7 @@ export const searchEntities = async (
 	endpoint += `?q=${encodeURIComponent(query)}`;
 
 	try {
-		const response = await fetch(endpoint);
-		if (!response.ok) {
-			throw new Error(`HTTP error! status: ${response.status}`);
-		}
-		const data = await response.json();
+		const data = await fetchWithCache(endpoint);
 		return data.results.map(
 			(result: {
 				id: string;
@@ -50,14 +87,7 @@ export const getEntityDetails = async (
 
 		console.log(`Fetching entity details from: ${endpoint}`);
 
-		const response = await fetch(endpoint);
-		if (!response.ok) {
-			if (response.status === 404) {
-				throw new Error(`Entity not found: ${id}`);
-			}
-			throw new Error(`HTTP error! status: ${response.status}`);
-		}
-		const data = await response.json();
+		const data = await fetchWithCache(endpoint);
 		return data;
 	} catch (error) {
 		console.error(`Error fetching entity details for ${id}:`, error);
@@ -111,9 +141,6 @@ export const getRelatedEntities = async (
 			);
 		}
 
-		// Add other related entities based on the entity type
-		// (e.g., related works for authors, related authors for institutions, etc.)
-
 		return relatedEntities;
 	} catch (error) {
 		console.error("Error fetching related entities:", error);
@@ -124,16 +151,10 @@ export const getRelatedEntities = async (
 export const openAlexUriRegex: RegExp =
 	/(?:https?:\/\/(?:openalex\.org|api\.openalex\.org)\/)?(?:[a-zA-Z]+\/)?([A-Za-z]\d{3,})(?:\/|\?|$)/;
 
-/**
- * Extracts the entity ID from an OpenAlex URI.
- * @param uri The OpenAlex URI to extract the ID from.
- * @returns The entity ID extracted from the URI.
- * @throws An error if the URI is invalid.
- */
 export function idFromUri(uri: string): string {
 	const match: RegExpMatchArray = openAlexUriRegex.exec(uri)!;
 	if (match && match[1]) {
-		return match[1].toUpperCase(); // The first capture group is the TYPE_CHAR and ENTITY_ID
+		return match[1].toUpperCase();
 	}
 	throw new Error(`Invalid OpenAlex URI: "${uri}"`);
 }
