@@ -13,7 +13,15 @@ jobs:
     permissions:
       pages: read
     steps:
+      - name: Check secrets
+        id: check_secrets
+        run: |
+          echo "GH_APP_ID_EXISTS=${{ secrets.GH_APP_ID && 'true' || 'false' }}" >> $GITHUB_OUTPUT
+          echo "GH_APP_PRIVATE_KEY_EXISTS=${{ secrets.GH_APP_PRIVATE_KEY && 'true' || 'false' }}" >> $GITHUB_OUTPUT
+          echo "GH_APP_EXISTS=${{ secrets.GH_APP_ID && secrets.GH_APP_PRIVATE_KEY && 'true' || 'false' }}" >> $GITHUB_OUTPUT
+
       - name: Generate a token
+        if: steps.check_secrets.outputs.GH_APP_EXISTS == 'true'
         continue-on-error: true
         id: generate_token
         uses: actions/create-github-app-token@v1
