@@ -26,7 +26,7 @@ const AppContent: React.FC = () => {
 		if (savedCollections) {
 			setCollections(JSON.parse(savedCollections));
 		}
-	}, []);
+	});
 
 	useEffect(() => {
 		localStorage.setItem("collections", JSON.stringify(collections));
@@ -45,7 +45,7 @@ const AppContent: React.FC = () => {
 			setCurrentEntityType(entityType);
 			performSearch(query, entityType);
 		}
-	}, []);
+	}, [setCurrentQuery]);
 
 	const performSearch = useCallback(
 		async (query: string, entityType: string) => {
