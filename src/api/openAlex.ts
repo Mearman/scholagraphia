@@ -18,7 +18,12 @@ const getFromCache = (key: string): any | null => {
 	if (!item) return null;
 
 	const { data, timestamp }: CacheItem = JSON.parse(item);
-	if (Date.now() - timestamp > CACHE_EXPIRATION) {
+	const timeSinceCached = Date.now() - timestamp;
+
+	console.debug({ cache: JSON.parse(item) });
+
+	if (timeSinceCached > CACHE_EXPIRATION) {
+		console.debug(`Cache expired for key: ${key}`);
 		localStorage.removeItem(key);
 		return null;
 	}
@@ -63,11 +68,7 @@ export const searchEntities = async (
 	try {
 		const data = await fetchWithCache(endpoint);
 		return data.results.map(
-			(result: {
-				id: string;
-				display_name: string;
-				entity_type: string;
-			}) => ({
+			(result: { id: string; display_name: string; entity_type: string }) => ({
 				id: result.id,
 				display_name: result.display_name,
 				entity_type: type === "all" ? result.entity_type : type,
@@ -103,10 +104,7 @@ export const getRelatedEntities = async (
 		let relatedEntities: SearchResult[] = [];
 
 		// Add authors
-		if (
-			entityDetails.authorships &&
-			Array.isArray(entityDetails.authorships)
-		) {
+		if (entityDetails.authorships && Array.isArray(entityDetails.authorships)) {
 			relatedEntities = relatedEntities.concat(
 				entityDetails.authorships.map((authorship) => ({
 					id: authorship.author.id,
