@@ -1,8 +1,10 @@
 import {
-	SearchResult as AutocompleteResult,
+	EntityEndpointPath,
 	EntityMetadata,
 	EntityType,
 	entityTypeMappings,
+	Meta,
+	SearchResult,
 } from "../types";
 
 const BASE_URL = "https://api.openalex.org";
@@ -17,6 +19,89 @@ const weeksToMilliseconds = (weeks: number) => daysToMilliseconds(weeks * 7);
 const monthsToMilliseconds = (months: number, daysInMonth = 30) =>
 	daysToMilliseconds(months * daysInMonth);
 const yearsToMilliseconds = (years: number) => daysToMilliseconds(years * 365);
+
+interface CacheItem {
+	data: {
+		bodyText: string;
+		status: number;
+		statusText: string;
+		headers: Record<string, string>;
+	};
+	timestamp: number;
+}
+
+async function setToCache(key: string, response: Response): Promise<Response> {
+	const clonedResponse = response.clone();
+	const bodyText = await clonedResponse.text();
+
+	const headers: Record<string, string> = {};
+	clonedResponse.headers.forEach((value, key) => {
+		headers[key] = value;
+	});
+
+	const data = {
+		bodyText,
+		status: clonedResponse.status,
+		statusText: clonedResponse.statusText,
+		headers,
+	};
+
+	const cacheItem: CacheItem = {
+		data,
+		timestamp: Date.now(),
+	};
+
+	localStorage.setItem(key, JSON.stringify(cacheItem));
+
+	return response;
+}
+
+function getFromCache(key: string): Response | null {
+	const item = localStorage.getItem(key);
+	if (!item) return null;
+
+	const { data, timestamp }: CacheItem = JSON.parse(item);
+	const timeSinceCached = Date.now() - timestamp;
+
+	if (timeSinceCached > CACHE_EXPIRATION) {
+		localStorage.removeItem(key);
+		return null;
+	}
+
+	const headers = new Headers(data.headers);
+
+	const responseInit: ResponseInit = {
+		status: data.status,
+		statusText: data.statusText,
+		headers,
+	};
+	return new Response(data.bodyText, responseInit);
+}
+
+export const fetchWithCache: typeof fetch = async (
+	url: RequestInfo | URL,
+	options?: RequestInit | undefined
+): Promise<Response> => {
+	if (typeof url === "string") {
+		url = new URL(url);
+	}
+	const cacheKey = [url.toString(), JSON.stringify(options)]
+		.filter(Boolean)
+		.join("_");
+	const cachedData = getFromCache(cacheKey);
+
+	if (cachedData) {
+		return cachedData;
+	}
+
+	const response = await fetch(url.toString(), options);
+	if (!response.ok) {
+		throw new Error(`HTTP error! status: ${response.status}`);
+	}
+
+	await setToCache(cacheKey, response.clone());
+	return response;
+};
 
 function durationToMilliseconds({
 	seconds = 0,
@@ -45,58 +130,129 @@ function durationToMilliseconds({
 		yearsToMilliseconds(years)
 	);
 }
-// const CACHE_EXPIRATION = 30 * 60 * 1000; // 30 minutes in milliseconds
+
 const CACHE_EXPIRATION = durationToMilliseconds({ weeks: 1 });
 
-interface CacheItem {
-	data: any;
-	timestamp: number;
+type FetchParams = Parameters<typeof fetch>;
+
+export async function fetchPage<E, T extends { meta: Meta; results: E[] }>(
+	url: URL | string,
+	page: number = 1,
+	perPage: number = 100,
+	params?: Record<string, string>,
+	options?: RequestInit
+): Promise<T> {
+	if (typeof url === "string") {
+		url = new URL(url);
+	}
+	if (params) {
+		Object.entries(params).forEach(([key, value]) => {
+			url.searchParams.append(key, value);
+		});
+	}
+	url.searchParams.append("page", page.toString());
+	url.searchParams.append("per_page", perPage.toString());
+	const data = await (await fetchWithCache(url.toString(), options)).json();
+	return data.results;
 }
 
-function getFromCache(key: string): any | null {
-	const item = localStorage.getItem(key);
-	if (!item) return null;
+export async function fetchAllPages<E, T extends { meta: Meta; results: E[] }>(
+	url: URL,
+	perPage: number = 100,
+	params?: Record<string, string>,
+	options?: RequestInit
+): Promise<T> {
+	let page = 1;
+	let results: E[] = [];
+	let data: T = await fetchPage(url, page, perPage, params, options);
+	results = results.concat(data.results);
 
-	const { data, timestamp }: CacheItem = JSON.parse(item);
-	const timeSinceCached = Date.now() - timestamp;
+	let total_pages = Infinity;
+	do {
+		page++;
+		data = await fetchPage(url, page, perPage, params, options);
+		results = results.concat(data.results);
+		total_pages = data.meta.count / data.meta.per_page;
+	} while (data.meta.page < total_pages);
 
-	console.debug({ cache: JSON.parse(item) });
-
-	if (timeSinceCached > CACHE_EXPIRATION) {
-		console.debug(`Cache expired for key: ${key}`);
-		localStorage.removeItem(key);
-		return null;
-	}
-
-	return data;
+	return {
+		...data,
+		results,
+	};
 }
 
-function setToCache(key: string, data: any) {
-	const item: CacheItem = { data, timestamp: Date.now() };
-	localStorage.setItem(key, JSON.stringify(item));
-}
+export async function searchEntities(
+	search: string,
+	type: EntityType | "all" = "all",
+	params?: Record<string, string>,
+	options?: RequestInit
+): Promise<unknown[]> {
+	let queryUrl = new URL(BASE_URL);
 
-async function fetchWithCache(url: string, options?: RequestInit) {
-	const cacheKey = `openalex_cache_${url}`;
-	const cachedData = getFromCache(cacheKey);
+	let results: unknown[] = [];
 
-	if (cachedData) {
-		return cachedData;
+	if (type == "all") {
+		const endpoints = Object.values(EntityEndpointPath);
+		for await (const endpoint of endpoints) {
+			queryUrl.pathname = endpoint;
+			queryUrl.searchParams.append("search", search);
+
+			if (params) {
+				Object.entries(params).forEach(([key, value]) => {
+					queryUrl.searchParams.append(key, value);
+				});
+			}
+
+			try {
+				const data = await (await fetchWithCache(queryUrl.toString())).json();
+				results.push(
+					...data.results.map(
+						(result: {
+							id: string;
+							display_name: string;
+							entity_type: string;
+						}) => ({
+							id: result.id,
+							display_name: result.display_name,
+							// entity_type: type === "all" ? result.entity_type : type,
+						})
+					)
+				);
+			} catch (error) {
+				console.error("Error fetching search results:", error);
+				throw error;
+			}
+		}
+	} else {
+		queryUrl.pathname = EntityEndpointPath[type];
+		queryUrl.searchParams.append("search", search);
+		try {
+			const data = await (
+				await fetchWithCache(queryUrl.toString(), options)
+			).json();
+			return data.results.map(
+				(result: {
+					id: string;
+					display_name: string;
+					entity_type: string;
+				}) => ({
+					id: result.id,
+					display_name: result.display_name,
+					// entity_type: type === "all" ? result.entity_type : type,
+				})
+			);
+		} catch (error) {
+			console.error("Error fetching search results:", error);
+			throw error;
+		}
 	}
-
-	const response = await fetch(url, options);
-	if (!response.ok) {
-		throw new Error(`HTTP error! status: ${response.status}`);
-	}
-	const data = await response.json();
-	setToCache(cacheKey, data);
-	return data;
+	return results;
 }
 
 export async function autocompleteEntities(
 	query: string,
 	type: string = "all"
-): Promise<AutocompleteResult[]> {
+): Promise<SearchResult[]> {
 	let endpoint = `${BASE_URL}/autocomplete`;
 
 	if (type !== "all") {
@@ -106,7 +262,7 @@ export async function autocompleteEntities(
 	endpoint += `?q=${encodeURIComponent(query)}`;
 
 	try {
-		const data = await fetchWithCache(endpoint);
+		const data = await (await fetchWithCache(endpoint)).json();
 		return data.results.map(
 			(result: { id: string; display_name: string; entity_type: string }) => ({
 				id: result.id,
@@ -128,7 +284,7 @@ export async function getEntityDetails(
 
 		console.log(`Fetching entity details from: ${endpoint}`);
 
-		const data = await fetchWithCache(endpoint);
+		const data = await (await fetchWithCache(endpoint)).json();
 		return data;
 	} catch (error) {
 		console.error(`Error fetching entity details for ${id}:`, error);
@@ -136,12 +292,10 @@ export async function getEntityDetails(
 	}
 }
 
-export async function getRelatedEntities(
-	id: string
-): Promise<AutocompleteResult[]> {
+export async function getRelatedEntities(id: string): Promise<SearchResult[]> {
 	try {
 		const entityDetails = await getEntityDetails(id);
-		let relatedEntities: AutocompleteResult[] = [];
+		let relatedEntities: SearchResult[] = [];
 
 		// Add authors
 		if (entityDetails.authorships && Array.isArray(entityDetails.authorships)) {
@@ -203,7 +357,7 @@ export function typeFromUri(uri: string): EntityType | "unknown" {
 			(mapping) =>
 				mapping.TYPE_CHAR.toUpperCase() ===
 				idFromUri(uri).charAt(0).toUpperCase()
-		)?.ENTITY_TYPE || "unknown"
+		)?.ENTITY_TYPE ?? "unknown"
 	);
 }
 
