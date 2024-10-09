@@ -1,9 +1,9 @@
 import { ChevronDown, ChevronUp, Link, Plus, Share2, X } from "lucide-react";
 import React, { useState } from "react";
-import { Entity } from "../types";
+import { PartialEntity } from "../types";
 
 interface EntityCardProps {
-	entity: Entity;
+	entity: PartialEntity;
 	onCollect?: () => void;
 	onRemove?: () => void;
 	isCollected?: boolean;

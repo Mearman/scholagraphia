@@ -5,12 +5,12 @@ import {
 	typeFromUri,
 } from "../api/openAlex";
 import { useAppContext } from "../context/useAppContext";
-import { CollectedEntity, Entity, SearchResult } from "../types";
+import { CollectedEntity, PartialEntity } from "../types";
 import EntityCard from "./EntityCard";
 import Spinner from "./Spinner";
 
 interface SearchResultsProps {
-	searchResults: SearchResult[];
+	searchResults: PartialEntity[];
 	onShowRelated: (relatedId: string) => void;
 	isLoading: boolean;
 }
@@ -22,11 +22,10 @@ const SearchResults: React.FC<SearchResultsProps> = ({
 }) => {
 	const { collections, setCollections, activeCollectionId } = useAppContext();
 
-	const handleCollect = async (result: SearchResult) => {
+	const handleCollect = async (result: PartialEntity) => {
+		const entityType = typeFromUri(result.id);
 		try {
-			console.log(
-				`Collecting entity: ${result.id} (${result.entity_type})`
-			);
+			console.log(`Collecting entity: ${result.id} (${entityType})`);
 			const entityDetails = await getEntityDetails(result.id);
 			console.log("Entity details fetched:", entityDetails);
 			const relatedNodes = await getRelatedEntities(result.id);
@@ -35,7 +34,8 @@ const SearchResults: React.FC<SearchResultsProps> = ({
 				...entityDetails,
 				related_nodes: relatedNodes.map((node) => ({
 					...node,
-					type: node.entity_type, // Assuming entity_type is the correct field for type
+					// type: node.entity_type, // Assuming entity_type is the correct field for type
+					type: typeFromUri(node.id),
 				})),
 				id: result.id,
 				display_name: result.display_name,
@@ -64,7 +64,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({
 			}
 			console.error("Detailed error information:", {
 				entityId: result.id,
-				entityType: result.entity_type,
+				entityType: entityType,
 				errorMessage: errorMessage,
 			});
 			alert(`Failed to collect entity: ${errorMessage}`);
@@ -76,9 +76,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({
 			collection.id === activeCollectionId
 				? {
 						...collection,
-						entities: collection.entities.filter(
-							(entity) => entity.id !== id
-						),
+						entities: collection.entities.filter((entity) => entity.id !== id),
 				  }
 				: collection
 		);
@@ -102,15 +100,15 @@ const SearchResults: React.FC<SearchResultsProps> = ({
 			<h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">
 				Search Results
 			</h2>
-			{searchResults.map((result: SearchResult) => {
-				const entity = resultToEntity(result);
+			{searchResults.map((result: PartialEntity) => {
+				// const entity = resultToEntity(result);
 				return (
 					<EntityCard
-						key={entity.id}
-						entity={entity}
+						key={result.id}
+						entity={result}
 						onCollect={() => handleCollect(result)}
-						onRemove={() => handleRemove(entity.id)}
-						isCollected={isCollected(entity.id)}
+						onRemove={() => handleRemove(result.id)}
+						isCollected={isCollected(result.id)}
 						showCollectButton={true}
 						onShowRelated={onShowRelated}
 					/>
@@ -132,10 +130,10 @@ const SearchResults: React.FC<SearchResultsProps> = ({
 
 export default SearchResults;
 
-function resultToEntity(result: SearchResult): Entity {
-	return {
-		id: result.id,
-		display_name: result.display_name,
-		type: result.entity_type,
-	};
-}
+// function resultToEntity(result: SearchResult): Entity {
+// 	return {
+// 		id: result.id,
+// 		display_name: result.display_name,
+// 		type: result.entity_type,
+// 	};
+// }

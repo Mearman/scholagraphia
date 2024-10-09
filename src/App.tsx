@@ -12,10 +12,10 @@ import SearchResults from "./components/SearchResults";
 import ThemeToggle from "./components/ThemeToggle";
 import { AppProvider } from "./context/AppContext";
 import { useAppContext } from "./context/useAppContext";
-import { SearchResult } from "./types";
+import { PartialEntity } from "./types";
 
 const AppContent: React.FC = () => {
-	const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+	const [searchResults, setSearchResults] = useState<PartialEntity[]>([]);
 	const [isLoading, setIsLoading] = useState(false);
 	const { collections, setCollections } = useAppContext();
 	const [currentQuery, setCurrentQuery] = useState("");
@@ -71,9 +71,7 @@ const AppContent: React.FC = () => {
 				setSearchResults(results);
 			} catch (error) {
 				console.error("Search error:", error);
-				setError(
-					"An error occurred while searching. Please try again."
-				);
+				setError("An error occurred while searching. Please try again.");
 				setSearchResults([]);
 			} finally {
 				setIsLoading(false);
@@ -98,9 +96,9 @@ const AppContent: React.FC = () => {
 	}, [handleShowRelated, performSearch]);
 
 	const handleNewSearch = (
-		results: SearchResult[],
 		query: string,
-		entityType: string
+		entityType: string,
+		results: PartialEntity[]
 	) => {
 		setSearchResults(results);
 		setIsLoading(false);

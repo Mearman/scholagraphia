@@ -1,10 +1,12 @@
 import {
+	ApiSearchResult,
+	ApiSearchResults,
+	Entity,
 	EntityEndpointPath,
 	EntityMetadata,
 	EntityType,
 	entityTypeMappings,
 	Meta,
-	SearchResult,
 } from "../types";
 import { fetchWithCache } from "./fetchWithCache";
 
@@ -108,15 +110,21 @@ export async function fetchAllPages<E, T extends { meta: Meta; results: E[] }>(
 	};
 }
 
-export async function searchEntities<R = unknown>(
+export async function searchEntities<R = Entity>(
 	search: string,
 	type: EntityType | "all" = "all",
 	params?: Record<string, string>,
 	options?: RequestInit
-): Promise<R> {
+): Promise<ApiSearchResults<R>> {
 	let queryUrl = new URL(BASE_URL);
 
-	let results: unknown[] = [];
+	let results: ApiSearchResult<R>[] = [];
+	let meta: Meta = {
+		count: 0,
+		page: 0,
+		per_page: 0,
+		db_response_time_ms: 0,
+	};
 
 	if (type == "all") {
 		const endpoints = Object.values(EntityEndpointPath);
@@ -142,6 +150,7 @@ export async function searchEntities<R = unknown>(
 						// entity_type: type === "all" ? result.entity_type : type,
 					}))
 				);
+				meta = updateMeta(meta, data.meta);
 			} catch (error) {
 				console.error("Error fetching search results:", error);
 				throw error;
@@ -153,32 +162,25 @@ export async function searchEntities<R = unknown>(
 		try {
 			const response = await fetchWithCache(queryUrl.toString(), options);
 			const data = await response.json();
-			return data.results.map(
-				(result: {
-					id: string;
-					display_name: string;
-					entity_type: string;
-				}) => ({
-					id: result.id,
-					display_name: result.display_name,
-					// entity_type: type === "all" ? result.entity_type : type,
-				})
-			);
+			results.push(data);
+			meta = updateMeta(meta, data.meta);
 		} catch (error) {
 			console.error("Error fetching search results:", error);
 			throw error;
 		}
 	}
-	const sorted = results.sort(
-		(a: any, b: any) => b.relevance_score - a.relevance_score
-	);
-	return sorted;
+	return {
+		meta,
+		results: results.sort(
+			(a: any, b: any) => b.relevance_score - a.relevance_score
+		),
+	};
 }
 
 export async function autocompleteEntities(
 	query: string,
 	type: string = "all"
-): Promise<SearchResult[]> {
+): Promise<Entity[]> {
 	let endpoint = `${BASE_URL}/autocomplete`;
 
 	if (type !== "all") {
@@ -218,31 +220,33 @@ export async function getEntityDetails(
 	}
 }
 
-export async function getRelatedEntities(id: string): Promise<SearchResult[]> {
+export async function getRelatedEntities(id: string): Promise<Entity[]> {
 	try {
 		const entityDetails = await getEntityDetails(id);
-		let relatedEntities: SearchResult[] = [];
+		let relatedEntities: Entity[] = [];
 
 		// Add authors
 		if (entityDetails.authorships && Array.isArray(entityDetails.authorships)) {
-			relatedEntities = relatedEntities.concat(
-				entityDetails.authorships.map((authorship) => ({
-					id: authorship.author.id,
-					display_name: authorship.author.display_name,
-					entity_type: "author",
-				}))
-			);
+			relatedEntities = relatedEntities
+				.concat
+				// entityDetails.authorships.map((authorship) => ({
+				// 	id: authorship.author.id,
+				// 	display_name: authorship.author.display_name,
+				// 	entity_type: "author",
+				// }))
+				();
 		}
 
 		// Add concepts
 		if (entityDetails.concepts && Array.isArray(entityDetails.concepts)) {
-			relatedEntities = relatedEntities.concat(
-				entityDetails.concepts.map((concept) => ({
-					id: concept.id,
-					display_name: concept.display_name,
-					entity_type: "concept",
-				}))
-			);
+			relatedEntities = relatedEntities
+				.concat
+				// entityDetails.concepts.map((concept) => ({
+				// 	id: concept.id,
+				// 	display_name: concept.display_name,
+				// 	entity_type: "concept",
+				// }))
+				();
 		}
 
 		// Add institutions
@@ -250,13 +254,14 @@ export async function getRelatedEntities(id: string): Promise<SearchResult[]> {
 			entityDetails.institutions &&
 			Array.isArray(entityDetails.institutions)
 		) {
-			relatedEntities = relatedEntities.concat(
-				entityDetails.institutions.map((institution) => ({
-					id: institution.id,
-					display_name: institution.display_name,
-					entity_type: "institution",
-				}))
-			);
+			relatedEntities = relatedEntities
+				.concat
+				// entityDetails.institutions.map((institution) => ({
+				// 	id: institution.id,
+				// 	display_name: institution.display_name,
+				// 	entity_type: "institution",
+				// }))
+				();
 		}
 
 		return relatedEntities;
@@ -301,4 +306,12 @@ export function getEntityMetadataForUri(uri: string): EntityMetadata {
 export function apiUrlForUri(uri: string): string {
 	const metadata = getEntityMetadataForUri(uri);
 	return `${BASE_URL}/${metadata.ENTITY_ENDPOINT}/${idFromUri(uri)}`;
+}
+function updateMeta(meta: Meta, newMeta: Meta): Meta {
+	return {
+		count: newMeta.count,
+		page: newMeta.page,
+		per_page: newMeta.per_page,
+		db_response_time_ms: meta.db_response_time_ms + newMeta.db_response_time_ms,
+	};
 }

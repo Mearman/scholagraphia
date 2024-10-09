@@ -72,11 +72,18 @@ export const mergeSharedIds = (
 ): CollectedEntity[] => {
 	const existingIds = new Set(existingEntities.map((entity) => entity.id));
 	const newIds = sharedIds.filter((id) => !existingIds.has(id));
+	// const newEntities: CollectedEntity[] = newIds.map((id) => ({
+	// 	id,
+	// 	display_name: "Loading...",
+	// 	type: "unknown",
+	// 	related_nodes: [],
+	// }));
 	const newEntities: CollectedEntity[] = newIds.map((id) => ({
 		id,
 		display_name: "Loading...",
 		type: "unknown",
 		related_nodes: [],
 	}));
+
 	return [...existingEntities, ...newEntities];
 };

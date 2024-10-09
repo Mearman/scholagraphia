@@ -1,7 +1,8 @@
 import { Check, Plus } from "lucide-react";
 import React from "react";
+import { typeFromUri } from "../api/openAlex";
 import { useAppContext } from "../context/useAppContext";
-import { Entity } from "../types";
+import { PartialEntity } from "../types";
 
 const EntityDetails: React.FC = () => {
 	const { selectedEntity, collectedEntities, setCollectedEntities } =
@@ -9,9 +10,9 @@ const EntityDetails: React.FC = () => {
 
 	if (!selectedEntity) return null;
 
-	const isCollected = collectedEntities.some(
-		(entity: Entity) => entity.id === selectedEntity.id
-	);
+	const isCollected = collectedEntities.some((entity: PartialEntity) => {
+		return entity.id === selectedEntity.id;
+	});
 
 	const handleCollect = () => {
 		if (!isCollected) {
@@ -28,7 +29,7 @@ const EntityDetails: React.FC = () => {
 				{selectedEntity.display_name}
 			</h2>
 			<p className="text-gray-600 dark:text-gray-400 mb-4">
-				Type: {selectedEntity.type}
+				Type: {typeFromUri(selectedEntity.id)}
 			</p>
 			<button
 				onClick={handleCollect}

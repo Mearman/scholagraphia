@@ -67,23 +67,25 @@ export const entityTypeMappings: EntityMetadata[] = Object.entries(
 
 export { EntityCharacter, EntityEndpointPath, EntityType };
 
-export interface Entity {
-	id: string;
-	display_name: string;
-	type: EntityType | "unknown";
-}
+// export interface Entity {
+// 	id: string;
+// 	display_name: string;
+// 	type: EntityType | "unknown";
+// }
+// export interface Entity {}
+// type Entity = Entity;
 
-export interface SearchResult {
-	id: string;
-	display_name: string;
-	entity_type: EntityType | "unknown";
-}
+// export interface SearchResult {
+// 	id: string;
+// 	display_name: string;
+// 	entity_type: EntityType | "unknown";
+// }
 
-export interface RelatedNode {
-	id: string;
-	display_name: string;
-	type: EntityType | "unknown";
-}
+// export interface RelatedNode {
+// 	id: string;
+// 	display_name: string;
+// 	type: EntityType | "unknown";
+// }
 
 export function isCollectedEntity(
 	something: unknown
@@ -94,9 +96,14 @@ export function isCollection(something: unknown): something is Collection {
 	return (something as Collection).id !== undefined;
 }
 
-export interface CollectedEntity extends Entity {
-	related_nodes: RelatedNode[];
-}
+// export type PartialEntity = Partial<Entity> & Pick<Entity, "id">;
+export type PartialEntity = Partial<Entity> &
+	Pick<Entity, "id"> &
+	Pick<Entity, "display_name">;
+
+export type CollectedEntity = PartialEntity & {
+	related_nodes: PartialEntity[];
+};
 
 export interface Collection {
 	id: string;
@@ -107,8 +114,8 @@ export interface Collection {
 export type ThemeMode = "light" | "dark" | "auto";
 
 export interface AppContextType {
-	searchResults: SearchResult[];
-	setSearchResults: (results: SearchResult[]) => void;
+	searchResults: PartialEntity[];
+	setSearchResults: (results: PartialEntity[]) => void;
 	collections: Collection[];
 	activeCollectionId: string;
 	setActiveCollectionId: (id: string) => void;
@@ -316,8 +323,8 @@ export interface APIResult<T> {
 	group_by: GroupBy[];
 }
 
-type ApiSearchResult<T> = T & { relevance_score: number };
-type ApiResult<T> = T & { relevance_score?: number };
+export type ApiSearchResult<T> = T & { relevance_score: number };
+export type ApiResult<T> = T & { relevance_score?: number };
 
 export interface Apc {
 	value: number;
@@ -680,7 +687,7 @@ export interface GroupedResults {
 export interface ApiSearchResults<T> {
 	meta: Meta;
 	results: ApiSearchResult<T>[];
-	group_by: GroupBy[];
+	group_by?: GroupBy[] | null;
 }
 
 // Specialized Types for API Results
@@ -695,7 +702,7 @@ export type Institutions = ApiSearchResults<Institution>;
 export type Works = ApiSearchResults<Work>;
 export type Authors = ApiSearchResults<Author>;
 
-export type AnyEntity =
+export type Entity =
 	| Work
 	| Author
 	| Source
@@ -707,4 +714,4 @@ export type AnyEntity =
 	| Country
 	| License;
 
-export type EntitySearchResults = ApiSearchResults<AnyEntity>;
+export type EntitySearchResults = ApiSearchResults<Entity>;

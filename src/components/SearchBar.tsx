@@ -2,13 +2,13 @@ import { ChevronDown, Search, ToggleLeft, ToggleRight, X } from "lucide-react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { searchEntities } from "../api/openAlex";
 import { useAppContext } from "../context/useAppContext";
-import { EntitySearchResults, SearchResult } from "../types";
+import { PartialEntity } from "../types";
 
 interface SearchBarProps {
 	onNewSearch: (
-		results: SearchResult[],
 		query: string,
-		entityType: string
+		entityType: string,
+		results: PartialEntity[]
 	) => void;
 	setIsLoading: (isLoading: boolean) => void;
 	initialQuery: string;
@@ -37,7 +37,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
 		async (searchQuery: string, type: string) => {
 			if (searchQuery.trim() === "") {
 				setSearchResults([]);
-				onNewSearch([], searchQuery, type);
+				onNewSearch(searchQuery, type, []);
 				setIsLoading(false);
 				return;
 			}
@@ -52,17 +52,14 @@ const SearchBar: React.FC<SearchBarProps> = ({
 			setIsLoading(true);
 			try {
 				// const results = await autocompleteEntities(searchQuery, type);
-				const results = await searchEntities<EntitySearchResults>(
-					searchQuery,
-					"all"
-				) as any
-				setSearchResults(results);
-				onNewSearch(results, searchQuery, type);
+				const results = await searchEntities<PartialEntity>(searchQuery, "all");
+				setSearchResults(results.results);
+				onNewSearch(searchQuery, type, results.results);
 				lastSearchRef.current = { query: searchQuery, type };
 			} catch (error) {
 				console.error("Search error:", error);
 				setSearchResults([]);
-				onNewSearch([], searchQuery, type);
+				onNewSearch(searchQuery, type, []);
 			} finally {
 				setIsLoading(false);
 			}
@@ -123,7 +120,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
 	const handleClearSearch = () => {
 		setQuery("");
 		setSearchResults([]);
-		onNewSearch([], "", entityType);
+		onNewSearch("", entityType, []);
 		lastSearchRef.current = null;
 		setIsLoading(false);
 	};
