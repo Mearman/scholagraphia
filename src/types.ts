@@ -135,7 +135,6 @@ export interface AppProviderProps {
 	children: ReactNode;
 }
 
-
 export interface Meta {
 	count: number;
 	db_response_time_ms: number;
@@ -355,7 +354,7 @@ export interface Version {
 	version_number: string;
 }
 
-export interface WorkResult {
+export interface Work {
 	id: string;
 	doi?: string;
 	title: string;
@@ -693,5 +692,19 @@ export type Topics = ApiSearchResults<Topic>;
 export type Keywords = ApiSearchResults<Keyword>;
 export type Sources = ApiSearchResults<Source>;
 export type Institutions = ApiSearchResults<Institution>;
-export type Works = ApiSearchResults<WorkResult>;
+export type Works = ApiSearchResults<Work>;
 export type Authors = ApiSearchResults<Author>;
+
+export type AnyEntity =
+	| Work
+	| Author
+	| Source
+	| Institution
+	| Topic
+	| Keyword
+	| Publisher
+	| Funder
+	| Country
+	| License;
+
+export type EntitySearchResults = ApiSearchResults<AnyEntity>;

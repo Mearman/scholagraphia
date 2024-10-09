@@ -108,12 +108,12 @@ export async function fetchAllPages<E, T extends { meta: Meta; results: E[] }>(
 	};
 }
 
-export async function searchEntities(
+export async function searchEntities<R = unknown>(
 	search: string,
 	type: EntityType | "all" = "all",
 	params?: Record<string, string>,
 	options?: RequestInit
-): Promise<unknown[]> {
+): Promise<R> {
 	let queryUrl = new URL(BASE_URL);
 
 	let results: unknown[] = [];
@@ -123,6 +123,7 @@ export async function searchEntities(
 		for await (const endpoint of endpoints) {
 			queryUrl.pathname = endpoint;
 			queryUrl.searchParams.append("search", search);
+			queryUrl.searchParams.append("per_page", "5");
 
 			if (params) {
 				Object.entries(params).forEach(([key, value]) => {
@@ -131,19 +132,15 @@ export async function searchEntities(
 			}
 
 			try {
-				const data = await (await fetchWithCache(queryUrl.toString())).json();
+				const response = await fetchWithCache(queryUrl.toString());
+				const data = await response.json();
 				results.push(
-					...data.results.map(
-						(result: {
-							id: string;
-							display_name: string;
-							entity_type: string;
-						}) => ({
-							id: result.id,
-							display_name: result.display_name,
-							// entity_type: type === "all" ? result.entity_type : type,
-						})
-					)
+					...data.results.map((result: any) => ({
+						id: result.id,
+						display_name: result.display_name,
+						relevance_score: result.relevance_score,
+						// entity_type: type === "all" ? result.entity_type : type,
+					}))
 				);
 			} catch (error) {
 				console.error("Error fetching search results:", error);
@@ -154,9 +151,8 @@ export async function searchEntities(
 		queryUrl.pathname = EntityEndpointPath[type];
 		queryUrl.searchParams.append("search", search);
 		try {
-			const data = await (
-				await fetchWithCache(queryUrl.toString(), options)
-			).json();
+			const response = await fetchWithCache(queryUrl.toString(), options);
+			const data = await response.json();
 			return data.results.map(
 				(result: {
 					id: string;
@@ -173,7 +169,10 @@ export async function searchEntities(
 			throw error;
 		}
 	}
-	return results;
+	const sorted = results.sort(
+		(a: any, b: any) => b.relevance_score - a.relevance_score
+	);
+	return sorted;
 }
 
 export async function autocompleteEntities(

@@ -1,8 +1,8 @@
 import { ChevronDown, Search, ToggleLeft, ToggleRight, X } from "lucide-react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { autocompleteEntities } from "../api/openAlex";
+import { searchEntities } from "../api/openAlex";
 import { useAppContext } from "../context/useAppContext";
-import { SearchResult } from "../types";
+import { EntitySearchResults, SearchResult } from "../types";
 
 interface SearchBarProps {
 	onNewSearch: (
@@ -51,7 +51,11 @@ const SearchBar: React.FC<SearchBarProps> = ({
 
 			setIsLoading(true);
 			try {
-				const results = await autocompleteEntities(searchQuery, type);
+				// const results = await autocompleteEntities(searchQuery, type);
+				const results = await searchEntities<EntitySearchResults>(
+					searchQuery,
+					"all"
+				) as any
 				setSearchResults(results);
 				onNewSearch(results, searchQuery, type);
 				lastSearchRef.current = { query: searchQuery, type };
@@ -101,9 +105,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
 		}
 	};
 
-	const handleEntityTypeChange = (
-		e: React.ChangeEvent<HTMLSelectElement>
-	) => {
+	const handleEntityTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
 		const newType = e.target.value;
 		setEntityType(newType);
 		if (searchWhileTyping && query.trim() !== "") {
