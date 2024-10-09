@@ -1,9 +1,9 @@
 import { Database } from "lucide-react";
 import React, { useCallback, useEffect, useState } from "react";
 import {
+	autocompleteEntities,
 	getEntityDetails,
 	getRelatedEntities,
-	searchEntities,
 } from "./api/openAlex";
 import CollectedEntities from "./components/CollectedEntities";
 import CollectionManager from "./components/CollectionManager";
@@ -67,7 +67,7 @@ const AppContent: React.FC = () => {
 			setIsLoading(true);
 			setError(null);
 			try {
-				const results = await searchEntities(query, entityType);
+				const results = await autocompleteEntities(query, entityType);
 				setSearchResults(results);
 			} catch (error) {
 				console.error("Search error:", error);

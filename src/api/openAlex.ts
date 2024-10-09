@@ -93,7 +93,7 @@ async function fetchWithCache(url: string, options?: RequestInit) {
 	return data;
 }
 
-export async function searchEntities(
+export async function autocompleteEntities(
 	query: string,
 	type: string = "all"
 ): Promise<SearchResult[]> {

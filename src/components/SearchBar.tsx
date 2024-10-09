@@ -1,6 +1,6 @@
 import { ChevronDown, Search, ToggleLeft, ToggleRight, X } from "lucide-react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { searchEntities } from "../api/openAlex";
+import { autocompleteEntities } from "../api/openAlex";
 import { useAppContext } from "../context/useAppContext";
 import { SearchResult } from "../types";
 
@@ -51,7 +51,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
 
 			setIsLoading(true);
 			try {
-				const results = await searchEntities(searchQuery, type);
+				const results = await autocompleteEntities(searchQuery, type);
 				setSearchResults(results);
 				onNewSearch(results, searchQuery, type);
 				lastSearchRef.current = { query: searchQuery, type };
