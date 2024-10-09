@@ -13,7 +13,7 @@ interface CacheItem {
 	timestamp: number;
 }
 
-const getFromCache = (key: string): any | null => {
+function getFromCache(key: string): any | null {
 	const item = localStorage.getItem(key);
 	if (!item) return null;
 
@@ -29,14 +29,14 @@ const getFromCache = (key: string): any | null => {
 	}
 
 	return data;
-};
+}
 
-const setToCache = (key: string, data: any) => {
+function setToCache(key: string, data: any) {
 	const item: CacheItem = { data, timestamp: Date.now() };
 	localStorage.setItem(key, JSON.stringify(item));
-};
+}
 
-const fetchWithCache = async (url: string, options?: RequestInit) => {
+async function fetchWithCache(url: string, options?: RequestInit) {
 	const cacheKey = `openalex_cache_${url}`;
 	const cachedData = getFromCache(cacheKey);
 
@@ -51,12 +51,12 @@ const fetchWithCache = async (url: string, options?: RequestInit) => {
 	const data = await response.json();
 	setToCache(cacheKey, data);
 	return data;
-};
+}
 
-export const searchEntities = async (
+export async function searchEntities(
 	query: string,
 	type: string = "all"
-): Promise<SearchResult[]> => {
+): Promise<SearchResult[]> {
 	let endpoint = `${BASE_URL}/autocomplete`;
 
 	if (type !== "all") {
@@ -78,11 +78,11 @@ export const searchEntities = async (
 		console.error("Error fetching search results:", error);
 		return [];
 	}
-};
+}
 
-export const getEntityDetails = async (
+export async function getEntityDetails(
 	id: string
-): Promise<Record<string, unknown>> => {
+): Promise<Record<string, unknown>> {
 	try {
 		const endpoint = apiUrlForUri(id);
 
@@ -94,11 +94,9 @@ export const getEntityDetails = async (
 		console.error(`Error fetching entity details for ${id}:`, error);
 		throw error;
 	}
-};
+}
 
-export const getRelatedEntities = async (
-	id: string
-): Promise<SearchResult[]> => {
+export async function getRelatedEntities(id: string): Promise<SearchResult[]> {
 	try {
 		const entityDetails = await getEntityDetails(id);
 		let relatedEntities: SearchResult[] = [];
@@ -144,7 +142,7 @@ export const getRelatedEntities = async (
 		console.error("Error fetching related entities:", error);
 		throw error;
 	}
-};
+}
 
 export const openAlexUriRegex: RegExp =
 	/(?:https?:\/\/(?:openalex\.org|api\.openalex\.org)\/)?(?:[a-zA-Z]+\/)?([A-Za-z]\d{3,})(?:\/|\?|$)/;
