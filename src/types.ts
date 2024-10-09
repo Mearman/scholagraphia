@@ -317,7 +317,7 @@ export interface APIResult<T> {
 	group_by: GroupBy[];
 }
 
-type SearchResult<T> = T & { relevance_score: number };
+type ApiSearchResult<T> = T & { relevance_score: number };
 type ApiResult<T> = T & { relevance_score?: number };
 
 export interface Apc {
@@ -678,20 +678,20 @@ export interface GroupedResults {
 	group_by: GroupBy[];
 }
 
-export interface ApiSearchResult<T> {
+export interface ApiSearchResults<T> {
 	meta: Meta;
-	results: SearchResult<T>[];
+	results: ApiSearchResult<T>[];
 	group_by: GroupBy[];
 }
 
 // Specialized Types for API Results
-export type Licenses = ApiSearchResult<License>;
-export type Countries = ApiSearchResult<Country>;
-export type Funders = ApiSearchResult<Funder>;
-export type Publishers = ApiSearchResult<Publisher>;
-export type Topics = ApiSearchResult<Topic>;
-export type Keywords = ApiSearchResult<Keyword>;
-export type Sources = ApiSearchResult<Source>;
-export type Institutions = ApiSearchResult<Institution>;
-export type Works = ApiSearchResult<WorkResult>;
-export type Authors = ApiSearchResult<Author>;
+export type Licenses = ApiSearchResults<License>;
+export type Countries = ApiSearchResults<Country>;
+export type Funders = ApiSearchResults<Funder>;
+export type Publishers = ApiSearchResults<Publisher>;
+export type Topics = ApiSearchResults<Topic>;
+export type Keywords = ApiSearchResults<Keyword>;
+export type Sources = ApiSearchResults<Source>;
+export type Institutions = ApiSearchResults<Institution>;
+export type Works = ApiSearchResults<WorkResult>;
+export type Authors = ApiSearchResults<Author>;
