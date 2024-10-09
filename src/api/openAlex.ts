@@ -1,8 +1,8 @@
 import {
+	SearchResult as AutocompleteResult,
 	EntityMetadata,
 	EntityType,
 	entityTypeMappings,
-	SearchResult,
 } from "../types";
 
 const BASE_URL = "https://api.openalex.org";
@@ -96,7 +96,7 @@ async function fetchWithCache(url: string, options?: RequestInit) {
 export async function autocompleteEntities(
 	query: string,
 	type: string = "all"
-): Promise<SearchResult[]> {
+): Promise<AutocompleteResult[]> {
 	let endpoint = `${BASE_URL}/autocomplete`;
 
 	if (type !== "all") {
@@ -136,10 +136,12 @@ export async function getEntityDetails(
 	}
 }
 
-export async function getRelatedEntities(id: string): Promise<SearchResult[]> {
+export async function getRelatedEntities(
+	id: string
+): Promise<AutocompleteResult[]> {
 	try {
 		const entityDetails = await getEntityDetails(id);
-		let relatedEntities: SearchResult[] = [];
+		let relatedEntities: AutocompleteResult[] = [];
 
 		// Add authors
 		if (entityDetails.authorships && Array.isArray(entityDetails.authorships)) {
