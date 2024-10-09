@@ -10,16 +10,27 @@ import { fetchWithCache } from "./fetchWithCache";
 
 const BASE_URL = "https://api.openalex.org";
 
-const secondsToMilliseconds = (seconds: number) => seconds * 1000;
-const minutesToMilliseconds = (minutes: number) =>
-	secondsToMilliseconds(minutes * 60);
-const hoursToMilliseconds = (hours: number) =>
-	minutesToMilliseconds(hours * 60);
-const daysToMilliseconds = (days: number) => hoursToMilliseconds(days * 24);
-const weeksToMilliseconds = (weeks: number) => daysToMilliseconds(weeks * 7);
-const monthsToMilliseconds = (months: number, daysInMonth = 30) =>
-	daysToMilliseconds(months * daysInMonth);
-const yearsToMilliseconds = (years: number) => daysToMilliseconds(years * 365);
+export function secondsToMilliseconds(seconds: number) {
+	return seconds * 1000;
+}
+export function minutesToMilliseconds(minutes: number) {
+	return secondsToMilliseconds(minutes * 60);
+}
+export function hoursToMilliseconds(hours: number) {
+	return minutesToMilliseconds(hours * 60);
+}
+export function daysToMilliseconds(days: number) {
+	return hoursToMilliseconds(days * 24);
+}
+export function weeksToMilliseconds(weeks: number) {
+	return daysToMilliseconds(weeks * 7);
+}
+export function monthsToMilliseconds(months: number, daysInMonth = 30) {
+	return daysToMilliseconds(months * daysInMonth);
+}
+export function yearsToMilliseconds(years: number) {
+	return daysToMilliseconds(years * 365);
+}
 
 export function durationToMilliseconds({
 	seconds = 0,

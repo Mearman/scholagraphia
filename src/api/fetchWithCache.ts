@@ -83,4 +83,4 @@ function getFromCache(key: string): Response | null {
 	return new Response(data.bodyText, responseInit);
 }
 
-const CACHE_EXPIRATION = durationToMilliseconds({ weeks: 1 });
+export const CACHE_EXPIRATION = durationToMilliseconds({ weeks: 1 });
