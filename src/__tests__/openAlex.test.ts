@@ -1,6 +1,6 @@
 import { entityTypeMappings } from "../types";
-import { fetchWithCache } from "./fetchWithCache";
-import { idFromUri } from "./openAlex";
+import { fetchWithCache } from "../api/fetchWithCache";
+import { idFromUri } from "../api/openAlex";
 
 const uri = new URL("https://api.openalex.org");
 
