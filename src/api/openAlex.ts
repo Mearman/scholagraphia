@@ -6,7 +6,47 @@ import {
 } from "../types";
 
 const BASE_URL = "https://api.openalex.org";
-const CACHE_EXPIRATION = 30 * 60 * 1000; // 30 minutes in milliseconds
+
+const secondsToMilliseconds = (seconds: number) => seconds * 1000;
+const minutesToMilliseconds = (minutes: number) =>
+	secondsToMilliseconds(minutes * 60);
+const hoursToMilliseconds = (hours: number) =>
+	minutesToMilliseconds(hours * 60);
+const daysToMilliseconds = (days: number) => hoursToMilliseconds(days * 24);
+const weeksToMilliseconds = (weeks: number) => daysToMilliseconds(weeks * 7);
+const monthsToMilliseconds = (months: number, daysInMonth = 30) =>
+	daysToMilliseconds(months * daysInMonth);
+const yearsToMilliseconds = (years: number) => daysToMilliseconds(years * 365);
+
+function durationToMilliseconds({
+	seconds = 0,
+	minutes = 0,
+	hours = 0,
+	days = 0,
+	weeks = 0,
+	months = 0,
+	years = 0,
+}: {
+	seconds?: number;
+	minutes?: number;
+	hours?: number;
+	days?: number;
+	weeks?: number;
+	months?: number;
+	years?: number;
+}): number {
+	return (
+		secondsToMilliseconds(seconds) +
+		minutesToMilliseconds(minutes) +
+		hoursToMilliseconds(hours) +
+		daysToMilliseconds(days) +
+		weeksToMilliseconds(weeks) +
+		monthsToMilliseconds(months) +
+		yearsToMilliseconds(years)
+	);
+}
+// const CACHE_EXPIRATION = 30 * 60 * 1000; // 30 minutes in milliseconds
+const CACHE_EXPIRATION = durationToMilliseconds({ weeks: 1 });
 
 interface CacheItem {
 	data: any;
