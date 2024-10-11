@@ -102,7 +102,7 @@ export type PartialEntity = Partial<Entity> &
 	Pick<Entity, "display_name">;
 
 export type CollectedEntity = PartialEntity & {
-	related_nodes: PartialEntity[];
+	related_nodes?: PartialEntity[];
 };
 
 export interface Collection {

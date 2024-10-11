@@ -2,8 +2,7 @@ import React, { createContext, useEffect, useState } from "react";
 import { isThemeMode } from "../api/isThemeMode";
 import {
 	getEntityDetails,
-	getRelatedEntities,
-	typeFromUri,
+	typeFromUri
 } from "../api/openAlex";
 import {
 	AppContextType,
@@ -127,7 +126,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 			for (const entity of collection.entities) {
 				try {
 					const entityDetails = await getEntityDetails(entity.id);
-					const relatedNodes = await getRelatedEntities(entity.id);
+					// const relatedNodes = await getRelatedEntities(entity.id);
 					setCollections((prevCollections) => {
 						return prevCollections.map((c) => {
 							if (c.id === collection.id) {
@@ -137,10 +136,10 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 										if (e.id === entity.id) {
 											return {
 												...entityDetails,
-												related_nodes: relatedNodes.map((node) => ({
-													...node,
-													type: typeFromUri(node.id),
-												})),
+												// related_nodes: relatedNodes.map((node) => ({
+												// 	...node,
+												// 	type: typeFromUri(node.id),
+												// })),
 												id: entity.id,
 												display_name: entity.display_name,
 												type: typeFromUri(entity.id),
@@ -165,7 +164,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 		collections.forEach((collection) => {
 			fetchEntityDetails(collection);
 		});
-	}, [collections]);
+	}, []);
 
 	const updateTheme = (mode: ThemeMode) => {
 		if (
