@@ -210,8 +210,6 @@ function App(): JSX.Element {
 }
 export default App;
 
-// SearchBar.tsx
-
 function SearchBar(): JSX.Element {
 	const {
 		query,
@@ -237,6 +235,12 @@ function SearchBar(): JSX.Element {
 		performSearch(1);
 	};
 
+	const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+		if (e.key === "Enter") {
+			handleSearch();
+		}
+	};
+
 	useEffect(() => {
 		if (searchWhileTyping) {
 			setCurrentPage(1);
@@ -252,6 +256,7 @@ function SearchBar(): JSX.Element {
 				placeholder="Search for entities..."
 				value={query}
 				onChange={(e) => setQuery(e.target.value)}
+				onKeyDown={handleKeyDown} // Added event handler for Enter key
 			/>
 			<select
 				value={entityType}
