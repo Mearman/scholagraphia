@@ -76,7 +76,7 @@ export function durationToMilliseconds({
  * @param {number} ms - The duration in milliseconds to be converted.
  * @returns {TimeInterval} An object representing the duration in years, months, weeks, days, hours, minutes, and seconds.
  */
-function msToDuration(ms: number): TimeInterval {
+export function msToDuration(ms: number): TimeInterval {
 	if (ms >= yearsToMilliseconds(1)) {
 		const years = Math.floor(ms / yearsToMilliseconds(1));
 		return { years, ...msToDuration(ms % yearsToMilliseconds(1)) };
@@ -109,9 +109,19 @@ function msToDuration(ms: number): TimeInterval {
  * @param duration - An object representing a time interval, where keys are time units (e.g., "seconds", "minutes") and values are the corresponding amounts.
  * @returns A string representation of the time interval, excluding units with a value of 0.
  */
-function durationToString(duration: TimeInterval): string {
+export function durationToString(duration: TimeInterval): string {
 	const parts = Object.entries(duration)
 		.map(([unit, value]) => `${value} ${unit}`)
 		.filter((part) => part !== "0 seconds");
 	return parts.join(", ");
+}
+
+/**
+ * Converts a duration in milliseconds to a human-readable string format.
+ *
+ * @param ms - The duration in milliseconds.
+ * @returns A string representing the duration in a human-readable format.
+ */
+export function msToString(ms: number): string {
+	return durationToString(msToDuration(ms));
 }
