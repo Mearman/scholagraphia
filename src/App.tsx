@@ -1,5 +1,3 @@
-// AppContext.tsx
-
 import {
 	Dispatch,
 	SetStateAction,
@@ -8,6 +6,7 @@ import {
 	useEffect,
 	useState,
 } from "react";
+import "./App.css";
 
 interface Result {
 	id: string;
@@ -174,7 +173,6 @@ function durationToString(duration: TimeInterval): string {
 		.filter((part) => part !== "0 seconds");
 	return parts.join(", ");
 }
-
 export const AppContext = createContext<AppContextType>(defaultContext);
 
 function AppContextProvider({
@@ -185,17 +183,17 @@ function AppContextProvider({
 	const [searchResults, setSearchResults] = useState<Result[]>([]);
 	const [query, setQuery] = useState("");
 	const [entityType, setEntityType] = useState(defaultContext.entityType);
-	const [currentPage, setCurrentPage] = useState<number>(1);
-	const [perPage, setPerPage] = useState<number>(defaultContext.perPage);
-	const [isLoading, setIsLoading] = useState<boolean>(false);
-	const [noMoreResults, setNoMoreResults] = useState<boolean>(false);
-	const [searchWhileTyping, setSearchWhileTyping] = useState<boolean>(
+	const [currentPage, setCurrentPage] = useState(defaultContext.currentPage);
+	const [perPage, setPerPage] = useState(defaultContext.perPage);
+	const [isLoading, setIsLoading] = useState(defaultContext.isLoading);
+	const [noMoreResults, setNoMoreResults] = useState(
+		defaultContext.noMoreResults
+	);
+	const [searchWhileTyping, setSearchWhileTyping] = useState(
 		defaultContext.searchWhileTyping
 	);
-	const [sortOnLoad, setSortOnLoad] = useState<boolean>(
-		defaultContext.sortOnLoad
-	);
-	const [cacheExpiryMs, setCacheExpiry] = useState<number>(
+	const [sortOnLoad, setSortOnLoad] = useState(defaultContext.sortOnLoad);
+	const [cacheExpiryMs, setCacheExpiry] = useState(
 		defaultContext.cacheExpiryMs
 	);
 
@@ -213,41 +211,27 @@ function AppContextProvider({
 				? ["works", "concepts", "authors", "institutions", "sources"]
 				: [entityType];
 
-		// Build cache key
 		const cacheKey = `searchResults:${encodeURIComponent(
 			query
 		)}:${entityType}:${page}:${perPage}`;
 
-		// Try to get from cache
 		const cachedData = localStorage.getItem(cacheKey);
 		if (cachedData) {
-			console.debug(`Cache hit for "${query}"`);
 			const cacheEntry: { timestamp: number; data: Result[] } =
 				JSON.parse(cachedData);
 			const now = Date.now();
-			const isCachedDataFresh = now - cacheEntry.timestamp < cacheExpiryMs;
-			if (isCachedDataFresh) {
-				// Cache entry is valid
+			if (now - cacheEntry.timestamp < cacheExpiryMs) {
 				setSearchResults((prevResults) => {
 					const updatedResults = [...prevResults, ...cacheEntry.data];
-					if (sortOnLoad) {
-						updatedResults.sort(
-							(a, b) => b.relevance_score - a.relevance_score
-						);
-					}
-					return updatedResults;
+					return sortOnLoad
+						? updatedResults.sort(
+								(a, b) => b.relevance_score - a.relevance_score
+						  )
+						: updatedResults;
 				});
 				setIsLoading(false);
 				return;
 			} else {
-				const expiredDuration = now - cacheEntry.timestamp;
-				console.debug(
-					`Cache entry for "${query}" expired ${durationToString(
-						msToDuration(expiredDuration)
-					)} ago`
-				);
-
-				// Cache entry is expired
 				localStorage.removeItem(cacheKey);
 			}
 		}
@@ -275,7 +259,6 @@ function AppContextProvider({
 				setNoMoreResults(true);
 			}
 
-			// Cache the results
 			const cacheEntry = {
 				timestamp: Date.now(),
 				data: combinedResults,
@@ -284,10 +267,9 @@ function AppContextProvider({
 
 			setSearchResults((prevResults) => {
 				const updatedResults = [...prevResults, ...combinedResults];
-				if (sortOnLoad) {
-					updatedResults.sort((a, b) => b.relevance_score - a.relevance_score);
-				}
-				return updatedResults;
+				return sortOnLoad
+					? updatedResults.sort((a, b) => b.relevance_score - a.relevance_score)
+					: updatedResults;
 			});
 		} catch (error) {
 			console.error("Error fetching search results:", error);
@@ -296,7 +278,7 @@ function AppContextProvider({
 		}
 	};
 
-	const context = {
+	const context: AppContextType = {
 		searchResults,
 		setSearchResults,
 		query,
@@ -326,11 +308,22 @@ function AppContextProvider({
 function App(): JSX.Element {
 	return (
 		<AppContextProvider>
-			<SearchBar />
-			<SearchResults />
+			<div className="app-container">
+				<header>
+					<h1>Scholagraphia</h1>
+				</header>
+				<main>
+					<SearchBar />
+					<SearchResults />
+				</main>
+				<footer>
+					<p>&copy; 2023 Scholagraphia. All rights reserved.</p>
+				</footer>
+			</div>
 		</AppContextProvider>
 	);
 }
+
 export default App;
 
 function SearchBar(): JSX.Element {
@@ -374,67 +367,68 @@ function SearchBar(): JSX.Element {
 
 	return (
 		<div className="search-bar">
-			<input
-				type="text"
-				placeholder="Search for entities..."
-				value={query}
-				onChange={(e) => setQuery(e.target.value)}
-				onKeyDown={handleKeyDown} // Added event handler for Enter key
-			/>
-			<select
-				value={entityType}
-				onChange={(e) => setEntityType(e.target.value)}
-			>
-				<option value="works">Works</option>
-				<option value="concepts">Concepts</option>
-				<option value="authors">Authors</option>
-				<option value="institutions">Institutions</option>
-				<option value="sources">Sources</option>
-				<option value="all">All</option>
-			</select>
-
-			<label>
+			<div className="search-input">
 				<input
-					type="checkbox"
-					checked={searchWhileTyping}
-					onChange={(e) => setSearchWhileTyping(e.target.checked)}
+					type="text"
+					placeholder="Search for entities..."
+					value={query}
+					onChange={(e) => setQuery(e.target.value)}
+					onKeyDown={handleKeyDown}
 				/>
-				Search while typing
-			</label>
-			<label>
-				<input
-					type="checkbox"
-					checked={sortOnLoad}
-					onChange={(e) => setSortOnLoad(e.target.checked)}
-				/>
-				Sort results when new page is loaded
-			</label>
-			<select
-				value={perPage}
-				onChange={(e) => setPerPage(Number(e.target.value))}
-			>
-				<option value={10}>10 per page</option>
-				<option value={20}>20 per page</option>
-				<option value={50}>50 per page</option>
-				<option value={100}>100 per page</option>
-			</select>
-
-			<label>
-				Cache Expiry (ms):
-				<input
-					type="number"
-					min="0"
-					value={cacheExpiryMs}
-					onChange={(e) => setCacheExpiry(Number(e.target.value))}
-				/>
-			</label>
-
-			<button onClick={handleSearch}>Search</button>
+				<button onClick={handleSearch}>Search</button>
+			</div>
+			<div className="search-options">
+				<select
+					value={entityType}
+					onChange={(e) => setEntityType(e.target.value)}
+				>
+					<option value="works">Works</option>
+					<option value="concepts">Concepts</option>
+					<option value="authors">Authors</option>
+					<option value="institutions">Institutions</option>
+					<option value="sources">Sources</option>
+					<option value="all">All</option>
+				</select>
+				<select
+					value={perPage}
+					onChange={(e) => setPerPage(Number(e.target.value))}
+				>
+					<option value={10}>10 per page</option>
+					<option value={20}>20 per page</option>
+					<option value={50}>50 per page</option>
+					<option value={100}>100 per page</option>
+				</select>
+			</div>
+			<div className="search-settings">
+				<label>
+					<input
+						type="checkbox"
+						checked={searchWhileTyping}
+						onChange={(e) => setSearchWhileTyping(e.target.checked)}
+					/>
+					Search while typing
+				</label>
+				<label>
+					<input
+						type="checkbox"
+						checked={sortOnLoad}
+						onChange={(e) => setSortOnLoad(e.target.checked)}
+					/>
+					Sort results when new page is loaded
+				</label>
+				<label>
+					Cache Expiry (ms):
+					<input
+						type="number"
+						min="0"
+						value={cacheExpiryMs}
+						onChange={(e) => setCacheExpiry(Number(e.target.value))}
+					/>
+				</label>
+			</div>
 		</div>
 	);
 }
-
-// SearchResults.tsx
 
 function SearchResults(): JSX.Element {
 	const {
@@ -454,7 +448,6 @@ function SearchResults(): JSX.Element {
 				!isLoading &&
 				!noMoreResults
 			) {
-				// Load more results
 				const nextPage = currentPage + 1;
 				setCurrentPage(nextPage);
 				performSearch(nextPage);
@@ -466,7 +459,7 @@ function SearchResults(): JSX.Element {
 	}, [currentPage, isLoading, noMoreResults, performSearch]);
 
 	if (searchResults.length === 0) {
-		return <p>No results found.</p>;
+		return <p className="no-results">No results found.</p>;
 	}
 
 	return (
@@ -478,14 +471,14 @@ function SearchResults(): JSX.Element {
 					<p>Entity Type: {getEntityTypeFromId(result.id)}</p>
 				</div>
 			))}
-			{isLoading && <p>Loading more results...</p>}
-			{noMoreResults && <p>No more results.</p>}
+			{isLoading && <p className="loading">Loading more results...</p>}
+			{noMoreResults && <p className="no-more-results">No more results.</p>}
 		</div>
 	);
 }
 
 function getEntityTypeFromId(id: string): string {
-	const prefix = id.split("/").pop()?.charAt(0); // Get the character after the last slash
+	const prefix = id.split("/").pop()?.charAt(0);
 	switch (prefix) {
 		case "W":
 			return "Work";
