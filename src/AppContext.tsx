@@ -107,10 +107,12 @@ export function AppContextProvider({
 			entityType === "all" ? Object.values(EntityType) : [entityType];
 
 		try {
-			const fetchPromises = entityTypes.map(async (type) => {
-				// const perEntityPerPage = perPage / entityTypes.length;
-				const perEntityPerPage = perPage;
+			const resultsArrays = [];
 
+			const perEntityPerPage = perPage;
+			// const perEntityPerPage = perPage / entityTypes.length;
+
+			for await (const type of entityTypes) {
 				const url = new URL("https://api.openalex.org/" + type);
 				url.searchParams.append("search", query);
 				url.searchParams.append("page", page.toString());
@@ -123,14 +125,15 @@ export function AppContextProvider({
 				const response = await fetchWithCache(url);
 				const data = await response.json();
 
-				return data.results.map((result: any) => ({
+				const result = data.results.map((result: any) => ({
 					id: result.id,
 					display_name: result.display_name,
 					relevance_score: result.relevance_score || 0,
 				}));
-			});
 
-			const resultsArrays = await Promise.all(fetchPromises);
+				resultsArrays.push(result);
+			}
+
 			const combinedResults = resultsArrays.flat();
 
 			if (combinedResults.length === 0) {
@@ -220,6 +223,12 @@ export const fetchWithCache: typeof fetch = async (
 
 	const response = await fetch(url.toString(), options);
 	if (!response.ok) {
+		if (response.status === 429) {
+			const retryAfter = response.headers.get("Retry-After");
+			const delay = retryAfter ? parseInt(retryAfter) * 1000 : 1000;
+			await new Promise((resolve) => setTimeout(resolve, delay));
+			return fetchWithCache(url, options);
+		}
 		throw new Error(`HTTP error! status: ${response.status}`);
 	}
 
