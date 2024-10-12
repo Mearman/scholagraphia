@@ -63,19 +63,37 @@ const defaultContext: AppContextType = {
 	setCacheExpiry: () => {},
 };
 
-const secondsToMilliseconds = (seconds: number): number => seconds * 1000;
-const minutesToMilliseconds = (minutes: number): number =>
-	secondsToMilliseconds(minutes * 60);
-const hoursToMilliseconds = (hours: number): number =>
-	minutesToMilliseconds(hours * 60);
-const daysToMilliseconds = (days: number): number =>
-	hoursToMilliseconds(days * 24);
-const weeksToMilliseconds = (weeks: number): number =>
-	daysToMilliseconds(weeks * 7);
-const monthsToMilliseconds = (months: number, daysInMonth = 30): number =>
-	daysToMilliseconds(months * daysInMonth);
-const yearsToMilliseconds = (years: number): number =>
-	daysToMilliseconds(years * 365);
+function secondsToMilliseconds(seconds: number): number {
+	return seconds * 1000;
+}
+function minutesToMilliseconds(minutes: number): number {
+	return secondsToMilliseconds(minutes * 60);
+}
+function hoursToMilliseconds(hours: number): number {
+	return minutesToMilliseconds(hours * 60);
+}
+function daysToMilliseconds(days: number): number {
+	return hoursToMilliseconds(days * 24);
+}
+function weeksToMilliseconds(weeks: number): number {
+	return daysToMilliseconds(weeks * 7);
+}
+function monthsToMilliseconds(months: number, daysInMonth = 30): number {
+	return daysToMilliseconds(months * daysInMonth);
+}
+function yearsToMilliseconds(years: number): number {
+	return daysToMilliseconds(years * 365);
+}
+
+type TimeInterval = {
+	seconds?: number;
+	minutes?: number;
+	hours?: number;
+	days?: number;
+	weeks?: number;
+	months?: number;
+	years?: number;
+};
 
 function durationToMilliseconds({
 	seconds = 0,
@@ -85,15 +103,7 @@ function durationToMilliseconds({
 	weeks = 0,
 	months = 0,
 	years = 0,
-}: {
-	seconds?: number;
-	minutes?: number;
-	hours?: number;
-	days?: number;
-	weeks?: number;
-	months?: number;
-	years?: number;
-}): number {
+}: TimeInterval): number {
 	return (
 		secondsToMilliseconds(seconds) +
 		minutesToMilliseconds(minutes) +
@@ -103,6 +113,41 @@ function durationToMilliseconds({
 		monthsToMilliseconds(months) +
 		yearsToMilliseconds(years)
 	);
+}
+
+function msToDuration(ms: number): TimeInterval {
+	// find largest unit that fits and then recursively call for the remainder
+	if (ms >= yearsToMilliseconds(1)) {
+		const years = Math.floor(ms / yearsToMilliseconds(1));
+		return { years, ...msToDuration(ms % yearsToMilliseconds(1)) };
+	} else if (ms >= monthsToMilliseconds(1)) {
+		const months = Math.floor(ms / monthsToMilliseconds(1));
+		return { months, ...msToDuration(ms % monthsToMilliseconds(1)) };
+	} else if (ms >= weeksToMilliseconds(1)) {
+		const weeks = Math.floor(ms / weeksToMilliseconds(1));
+		return { weeks, ...msToDuration(ms % weeksToMilliseconds(1)) };
+	} else if (ms >= daysToMilliseconds(1)) {
+		const days = Math.floor(ms / daysToMilliseconds(1));
+		return { days, ...msToDuration(ms % daysToMilliseconds(1)) };
+	} else if (ms >= hoursToMilliseconds(1)) {
+		const hours = Math.floor(ms / hoursToMilliseconds(1));
+		return { hours, ...msToDuration(ms % hoursToMilliseconds(1)) };
+	} else if (ms >= minutesToMilliseconds(1)) {
+		const minutes = Math.floor(ms / minutesToMilliseconds(1));
+		return { minutes, ...msToDuration(ms % minutesToMilliseconds(1)) };
+	} else if (ms >= secondsToMilliseconds(1)) {
+		const seconds = Math.floor(ms / secondsToMilliseconds(1));
+		return { seconds, ...msToDuration(ms % secondsToMilliseconds(1)) };
+	} else {
+		return {};
+	}
+}
+
+function durationToString(duration: TimeInterval): string {
+	const parts = Object.entries(duration)
+		.map(([unit, value]) => `${value} ${unit}`)
+		.filter((part) => part !== "0 seconds");
+	return parts.join(", ");
 }
 
 export const AppContext = createContext<AppContextType>(defaultContext);
@@ -119,9 +164,15 @@ function AppContextProvider({
 	const [perPage, setPerPage] = useState<number>(defaultContext.perPage);
 	const [isLoading, setIsLoading] = useState<boolean>(false);
 	const [noMoreResults, setNoMoreResults] = useState<boolean>(false);
-	const [searchWhileTyping, setSearchWhileTyping] = useState<boolean>(defaultContext.searchWhileTyping);
-	const [sortOnLoad, setSortOnLoad] = useState<boolean>(defaultContext.sortOnLoad);
-	const [cacheExpiry, setCacheExpiry] = useState<number>(defaultContext.cacheExpiry);
+	const [searchWhileTyping, setSearchWhileTyping] = useState<boolean>(
+		defaultContext.searchWhileTyping
+	);
+	const [sortOnLoad, setSortOnLoad] = useState<boolean>(
+		defaultContext.sortOnLoad
+	);
+	const [cacheExpiry, setCacheExpiry] = useState<number>(
+		defaultContext.cacheExpiry
+	);
 
 	const performSearch = async (page = currentPage) => {
 		if (!query || isLoading || noMoreResults) return;
@@ -145,6 +196,7 @@ function AppContextProvider({
 		// Try to get from cache
 		const cachedData = localStorage.getItem(cacheKey);
 		if (cachedData) {
+			console.debug(`Cache hit for "${query}"`);
 			const cacheEntry: { timestamp: number; data: Result[] } =
 				JSON.parse(cachedData);
 			const now = Date.now();
@@ -162,6 +214,13 @@ function AppContextProvider({
 				setIsLoading(false);
 				return;
 			} else {
+				const expiredDuration = now - cacheEntry.timestamp;
+				console.debug(
+					`Cache entry for "${query}" expired ${durationToString(
+						msToDuration(expiredDuration)
+					)} ago`
+				);
+
 				// Cache entry is expired
 				localStorage.removeItem(cacheKey);
 			}
