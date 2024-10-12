@@ -33,8 +33,8 @@ interface AppContextType {
 	performSearch: (page?: number) => Promise<void>;
 	searchWhileTyping: boolean;
 	setSearchWhileTyping: Dispatch<SetStateAction<boolean>>;
-	resortOnLoad: boolean;
-	setResortOnLoad: Dispatch<SetStateAction<boolean>>;
+	sortOnLoad: boolean;
+	setSortOnLoad: Dispatch<SetStateAction<boolean>>;
 	cacheExpiry: number;
 	setCacheExpiry: Dispatch<SetStateAction<number>>;
 }
@@ -57,35 +57,27 @@ const defaultContext: AppContextType = {
 	performSearch: async () => {},
 	searchWhileTyping: false,
 	setSearchWhileTyping: () => {},
-	resortOnLoad: false,
-	setResortOnLoad: () => {},
-	cacheExpiry: 3600000, // Default expiry time is 1 hour
+	sortOnLoad: false,
+	setSortOnLoad: () => {},
+	cacheExpiry: durationToMilliseconds({ weeks: 1 }),
 	setCacheExpiry: () => {},
 };
 
-export function secondsToMilliseconds(seconds: number) {
-	return seconds * 1000;
-}
-export function minutesToMilliseconds(minutes: number) {
-	return secondsToMilliseconds(minutes * 60);
-}
-export function hoursToMilliseconds(hours: number) {
-	return minutesToMilliseconds(hours * 60);
-}
-export function daysToMilliseconds(days: number) {
-	return hoursToMilliseconds(days * 24);
-}
-export function weeksToMilliseconds(weeks: number) {
-	return daysToMilliseconds(weeks * 7);
-}
-export function monthsToMilliseconds(months: number, daysInMonth = 30) {
-	return daysToMilliseconds(months * daysInMonth);
-}
-export function yearsToMilliseconds(years: number) {
-	return daysToMilliseconds(years * 365);
-}
+const secondsToMilliseconds = (seconds: number): number => seconds * 1000;
+const minutesToMilliseconds = (minutes: number): number =>
+	secondsToMilliseconds(minutes * 60);
+const hoursToMilliseconds = (hours: number): number =>
+	minutesToMilliseconds(hours * 60);
+const daysToMilliseconds = (days: number): number =>
+	hoursToMilliseconds(days * 24);
+const weeksToMilliseconds = (weeks: number): number =>
+	daysToMilliseconds(weeks * 7);
+const monthsToMilliseconds = (months: number, daysInMonth = 30): number =>
+	daysToMilliseconds(months * daysInMonth);
+const yearsToMilliseconds = (years: number): number =>
+	daysToMilliseconds(years * 365);
 
-export function durationToMilliseconds({
+function durationToMilliseconds({
 	seconds = 0,
 	minutes = 0,
 	hours = 0,
@@ -115,23 +107,21 @@ export function durationToMilliseconds({
 
 export const AppContext = createContext<AppContextType>(defaultContext);
 
-export function AppContextProvider({
+function AppContextProvider({
 	children,
 }: {
 	children: React.ReactNode;
 }): JSX.Element {
 	const [searchResults, setSearchResults] = useState<Result[]>([]);
 	const [query, setQuery] = useState("");
-	const [entityType, setEntityType] = useState("all");
+	const [entityType, setEntityType] = useState(defaultContext.entityType);
 	const [currentPage, setCurrentPage] = useState<number>(1);
-	const [perPage, setPerPage] = useState<number>(10);
+	const [perPage, setPerPage] = useState<number>(defaultContext.perPage);
 	const [isLoading, setIsLoading] = useState<boolean>(false);
 	const [noMoreResults, setNoMoreResults] = useState<boolean>(false);
-	const [searchWhileTyping, setSearchWhileTyping] = useState<boolean>(false);
-	const [resortOnLoad, setResortOnLoad] = useState<boolean>(false);
-	const [cacheExpiry, setCacheExpiry] = useState<number>(
-		durationToMilliseconds({ weeks: 1 })
-	);
+	const [searchWhileTyping, setSearchWhileTyping] = useState<boolean>(defaultContext.searchWhileTyping);
+	const [sortOnLoad, setSortOnLoad] = useState<boolean>(defaultContext.sortOnLoad);
+	const [cacheExpiry, setCacheExpiry] = useState<number>(defaultContext.cacheExpiry);
 
 	const performSearch = async (page = currentPage) => {
 		if (!query || isLoading || noMoreResults) return;
@@ -162,7 +152,7 @@ export function AppContextProvider({
 				// Cache entry is valid
 				setSearchResults((prevResults) => {
 					const updatedResults = [...prevResults, ...cacheEntry.data];
-					if (resortOnLoad) {
+					if (sortOnLoad) {
 						updatedResults.sort(
 							(a, b) => b.relevance_score - a.relevance_score
 						);
@@ -209,7 +199,7 @@ export function AppContextProvider({
 
 			setSearchResults((prevResults) => {
 				const updatedResults = [...prevResults, ...combinedResults];
-				if (resortOnLoad) {
+				if (sortOnLoad) {
 					updatedResults.sort(
 						(a, b) => b.relevance_score - a.relevance_score
 					);
@@ -241,8 +231,8 @@ export function AppContextProvider({
 		performSearch,
 		searchWhileTyping,
 		setSearchWhileTyping,
-		resortOnLoad,
-		setResortOnLoad,
+		sortOnLoad,
+		setSortOnLoad,
 		cacheExpiry,
 		setCacheExpiry,
 	};
@@ -275,8 +265,8 @@ function SearchBar(): JSX.Element {
 		performSearch,
 		searchWhileTyping,
 		setSearchWhileTyping,
-		resortOnLoad,
-		setResortOnLoad,
+		sortOnLoad,
+		setSortOnLoad,
 		cacheExpiry,
 		setCacheExpiry,
 	} = useContext(AppContext);
@@ -333,10 +323,10 @@ function SearchBar(): JSX.Element {
 			<label>
 				<input
 					type="checkbox"
-					checked={resortOnLoad}
-					onChange={(e) => setResortOnLoad(e.target.checked)}
+					checked={sortOnLoad}
+					onChange={(e) => setSortOnLoad(e.target.checked)}
 				/>
-				Resort results when new page is loaded
+				Sort results when new page is loaded
 			</label>
 			<select
 				value={perPage}
