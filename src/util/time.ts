@@ -50,14 +50,14 @@ type TimeInterval = {
  * @returns {number} The total time interval in milliseconds.
  */
 export function durationToMilliseconds({
-																				 seconds = 0,
-																				 minutes = 0,
-																				 hours = 0,
-																				 days = 0,
-																				 weeks = 0,
-																				 months = 0,
-																				 years = 0,
-																			 }: TimeInterval): number {
+	seconds = 0,
+	minutes = 0,
+	hours = 0,
+	days = 0,
+	weeks = 0,
+	months = 0,
+	years = 0,
+}: TimeInterval): number {
 	return (
 		secondsToMilliseconds(seconds) +
 		minutesToMilliseconds(minutes) +
@@ -79,25 +79,25 @@ export function durationToMilliseconds({
 function msToDuration(ms: number): TimeInterval {
 	if (ms >= yearsToMilliseconds(1)) {
 		const years = Math.floor(ms / yearsToMilliseconds(1));
-		return {years, ...msToDuration(ms % yearsToMilliseconds(1))};
+		return { years, ...msToDuration(ms % yearsToMilliseconds(1)) };
 	} else if (ms >= monthsToMilliseconds(1)) {
 		const months = Math.floor(ms / monthsToMilliseconds(1));
-		return {months, ...msToDuration(ms % monthsToMilliseconds(1))};
+		return { months, ...msToDuration(ms % monthsToMilliseconds(1)) };
 	} else if (ms >= weeksToMilliseconds(1)) {
 		const weeks = Math.floor(ms / weeksToMilliseconds(1));
-		return {weeks, ...msToDuration(ms % weeksToMilliseconds(1))};
+		return { weeks, ...msToDuration(ms % weeksToMilliseconds(1)) };
 	} else if (ms >= daysToMilliseconds(1)) {
 		const days = Math.floor(ms / daysToMilliseconds(1));
-		return {days, ...msToDuration(ms % daysToMilliseconds(1))};
+		return { days, ...msToDuration(ms % daysToMilliseconds(1)) };
 	} else if (ms >= hoursToMilliseconds(1)) {
 		const hours = Math.floor(ms / hoursToMilliseconds(1));
-		return {hours, ...msToDuration(ms % hoursToMilliseconds(1))};
+		return { hours, ...msToDuration(ms % hoursToMilliseconds(1)) };
 	} else if (ms >= minutesToMilliseconds(1)) {
 		const minutes = Math.floor(ms / minutesToMilliseconds(1));
-		return {minutes, ...msToDuration(ms % minutesToMilliseconds(1))};
+		return { minutes, ...msToDuration(ms % minutesToMilliseconds(1)) };
 	} else if (ms >= secondsToMilliseconds(1)) {
 		const seconds = Math.floor(ms / secondsToMilliseconds(1));
-		return {seconds, ...msToDuration(ms % secondsToMilliseconds(1))};
+		return { seconds, ...msToDuration(ms % secondsToMilliseconds(1)) };
 	} else {
 		return {};
 	}
