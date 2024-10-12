@@ -108,10 +108,17 @@ export function AppContextProvider({
 
 		try {
 			const fetchPromises = entityTypes.map(async (type) => {
-				let perEntityPerPage = perPage / entityTypes.length;
-				const url = `https://api.openalex.org/${type}?search=${encodeURIComponent(
-					query
-				)}&page=${page}&per_page=${perEntityPerPage}`;
+				// const perEntityPerPage = perPage / entityTypes.length;
+				const perEntityPerPage = perPage;
+
+				const url = new URL("https://api.openalex.org/" + type);
+				url.searchParams.append("search", query);
+				url.searchParams.append("page", page.toString());
+				url.searchParams.append("per_page", perEntityPerPage.toString());
+				url.searchParams.append(
+					"select",
+					["id", "display_name", "relevance_score"].join(",")
+				);
 
 				const response = await fetchWithCache(url);
 				const data = await response.json();
