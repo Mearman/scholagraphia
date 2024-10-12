@@ -55,13 +55,13 @@ const defaultContext: AppContextType = {
 	performSearch: async () => {},
 	searchWhileTyping: false,
 	setSearchWhileTyping: () => {},
-	sortOnLoad: false,
+	sortOnLoad: true,
 	setSortOnLoad: () => {},
 	cacheExpiryMs: durationToMilliseconds({ weeks: 1 }),
 	setCacheExpiry: () => {},
 	viewMode: "grid",
 	setViewMode: () => {},
-	theme: "auto",
+	theme: ThemeMode.auto,
 	setTheme: () => {},
 };
 export const AppContext = createContext<AppContextType>(defaultContext);
