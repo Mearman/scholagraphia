@@ -1,10 +1,21 @@
 import { createContext, Dispatch, SetStateAction, useState } from "react";
 
-interface SearchResult {
+interface Result {
 	id: number;
-	name: string;
-	type: string;
+	display_name: string;
 }
+
+export interface Meta {
+	count: number;
+	db_response_time_ms: number;
+	page: number;
+	per_page: number;
+}
+
+type SearchResult<T extends Result = Result> = {
+	meta: Meta;
+	results: T[];
+};
 
 interface AppContextType {
 	searchResults: SearchResult[];
@@ -70,9 +81,7 @@ function App(): JSX.Element {
 
 export default App;
 
-// SearchBar.tsx
 import { useEffect } from "react";
-import "./App.css";
 
 function SearchBar(): JSX.Element {
 	const { searchWhileTyping, setSearchWhileTyping, setSearchResults } =
@@ -81,16 +90,27 @@ function SearchBar(): JSX.Element {
 	const [entityType, setEntityType] = useState("all");
 
 	const performSearch = () => {
-		const dummyResults = [
-			{ id: 1, name: "John Doe", type: "person" },
-			{ id: 2, name: "Acme Corp", type: "organization" },
-			{ id: 3, name: "New York City", type: "location" },
+		const filteredResults = [
+			{ id: 1, display_name: "John Doe", type: "person" },
+			{ id: 2, display_name: "Acme Corp", type: "organization" },
+			{ id: 3, display_name: "New York City", type: "location" },
 		].filter(
 			(result) =>
 				(entityType === "all" || result.type === entityType) &&
-				result.name.toLowerCase().includes(query.toLowerCase())
+				result.display_name.toLowerCase().includes(query.toLowerCase())
 		);
-		setSearchResults(dummyResults);
+
+		const dummyResults: SearchResult = {
+			meta: {
+				count: filteredResults.length,
+				db_response_time_ms: 0,
+				page: 1,
+				per_page: filteredResults.length,
+			},
+			results: filteredResults,
+		};
+
+		setSearchResults([dummyResults]);
 	};
 
 	useEffect(() => {
@@ -136,10 +156,9 @@ function SearchResults(): JSX.Element {
 	return (
 		<div className="search-results">
 			{searchResults.length > 0 ? (
-				searchResults.map((result) => (
+				searchResults[0]?.results.map((result) => (
 					<div key={result.id} className="search-result">
-						<h3>{result.name}</h3>
-						<p>Type: {result.type}</p>
+						<h3>{result.display_name}</h3>
 					</div>
 				))
 			) : (
