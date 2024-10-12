@@ -1,6 +1,9 @@
-import { createContext, Dispatch, SetStateAction, useState } from "react";
-// AppContext.tsx
-import React from "react";
+import React, {
+	createContext,
+	Dispatch,
+	SetStateAction,
+	useState,
+} from "react";
 
 interface Result {
 	id: string;
@@ -8,25 +11,22 @@ interface Result {
 	relevance_score: number;
 }
 
-export interface Meta {
-	count: number;
-	db_response_time_ms: number;
-	page: number;
-	per_page: number;
-}
-
-type SearchResult<T extends Result = Result> = {
-	meta: Meta;
-	results: T[];
-};
-
 interface AppContextType {
-	searchResults: SearchResult[];
-	setSearchResults: Dispatch<SetStateAction<SearchResult[]>>;
-	collections: any[];
-	setCollections: Dispatch<SetStateAction<any[]>>;
-	activeCollectionId: string;
-	setActiveCollectionId: Dispatch<SetStateAction<string>>;
+	searchResults: Result[];
+	setSearchResults: Dispatch<SetStateAction<Result[]>>;
+	query: string;
+	setQuery: Dispatch<SetStateAction<string>>;
+	entityType: string;
+	setEntityType: Dispatch<SetStateAction<string>>;
+	currentPage: number;
+	setCurrentPage: Dispatch<SetStateAction<number>>;
+	perPage: number;
+	setPerPage: Dispatch<SetStateAction<number>>;
+	isLoading: boolean;
+	setIsLoading: Dispatch<SetStateAction<boolean>>;
+	noMoreResults: boolean;
+	setNoMoreResults: Dispatch<SetStateAction<boolean>>;
+	performSearch: (page?: number) => Promise<void>;
 	searchWhileTyping: boolean;
 	setSearchWhileTyping: Dispatch<SetStateAction<boolean>>;
 }
@@ -34,10 +34,19 @@ interface AppContextType {
 const defaultContext: AppContextType = {
 	searchResults: [],
 	setSearchResults: () => {},
-	collections: [],
-	setCollections: () => {},
-	activeCollectionId: "",
-	setActiveCollectionId: () => {},
+	query: "",
+	setQuery: () => {},
+	entityType: "all",
+	setEntityType: () => {},
+	currentPage: 1,
+	setCurrentPage: () => {},
+	perPage: 10,
+	setPerPage: () => {},
+	isLoading: false,
+	setIsLoading: () => {},
+	noMoreResults: false,
+	setNoMoreResults: () => {},
+	performSearch: async () => {},
 	searchWhileTyping: false,
 	setSearchWhileTyping: () => {},
 };
@@ -49,18 +58,83 @@ export function AppContextProvider({
 }: {
 	children: React.ReactNode;
 }): JSX.Element {
-	const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
-	const [collections, setCollections] = useState<any[]>([]);
-	const [activeCollectionId, setActiveCollectionId] = useState<string>("");
+	const [searchResults, setSearchResults] = useState<Result[]>([]);
+	const [query, setQuery] = useState("");
+	const [entityType, setEntityType] = useState("all");
+	const [currentPage, setCurrentPage] = useState<number>(1);
+	const [perPage, setPerPage] = useState<number>(10);
+	const [isLoading, setIsLoading] = useState<boolean>(false);
+	const [noMoreResults, setNoMoreResults] = useState<boolean>(false);
 	const [searchWhileTyping, setSearchWhileTyping] = useState<boolean>(false);
+
+	const performSearch = async (page = currentPage) => {
+		if (!query || isLoading || noMoreResults) return;
+
+		setIsLoading(true);
+
+		if (page === 1) {
+			setNoMoreResults(false);
+		}
+
+		const entityTypes =
+			entityType === "all"
+				? ["works", "concepts", "authors", "institutions", "sources"]
+				: [entityType];
+
+		try {
+			const fetchPromises = entityTypes.map(async (type) => {
+				const url = `https://api.openalex.org/${type}?search=${encodeURIComponent(
+					query
+				)}&page=${page}&per_page=${perPage}`;
+
+				const response = await fetch(url);
+				const data = await response.json();
+
+				return data.results.map((result: any) => ({
+					id: result.id,
+					display_name: result.display_name,
+					relevance_score: result.relevance_score || 0,
+				}));
+			});
+
+			const resultsArrays = await Promise.all(fetchPromises);
+			const combinedResults = resultsArrays.flat();
+
+			combinedResults.sort(
+				(a, b) => b.relevance_score - a.relevance_score
+			);
+
+			if (combinedResults.length === 0) {
+				setNoMoreResults(true);
+			}
+
+			setSearchResults((prevResults) => [
+				...prevResults,
+				...combinedResults,
+			]);
+		} catch (error) {
+			console.error("Error fetching search results:", error);
+		} finally {
+			setIsLoading(false);
+		}
+	};
 
 	const context = {
 		searchResults,
 		setSearchResults,
-		collections,
-		setCollections,
-		activeCollectionId,
-		setActiveCollectionId,
+		query,
+		setQuery,
+		entityType,
+		setEntityType,
+		currentPage,
+		setCurrentPage,
+		perPage,
+		setPerPage,
+		isLoading,
+		setIsLoading,
+		noMoreResults,
+		setNoMoreResults,
+		performSearch,
 		searchWhileTyping,
 		setSearchWhileTyping,
 	};
@@ -87,65 +161,31 @@ export default App;
 import { useEffect } from "react";
 
 function SearchBar(): JSX.Element {
-	const { searchWhileTyping, setSearchWhileTyping, setSearchResults } =
-		useContext(AppContext);
-	const [query, setQuery] = useState("");
-	const [entityType, setEntityType] = useState("works"); // Default to "works"
+	const {
+		query,
+		setQuery,
+		entityType,
+		setEntityType,
+		perPage,
+		setPerPage,
+		setCurrentPage,
+		setSearchResults,
+		performSearch,
+		searchWhileTyping,
+		setSearchWhileTyping,
+	} = useContext(AppContext);
 
-	const performSearch = async () => {
-		if (!query) return; // Avoid searching if the query is empty
-
-		const entityTypes =
-			entityType === "all"
-				? ["works", "concepts", "authors", "institutions", "sources"]
-				: [entityType];
-
-		try {
-			const fetchPromises = entityTypes.map(async (type) => {
-				const url = `https://api.openalex.org/${type}?search=${encodeURIComponent(
-					query
-				)}`;
-
-				const response = await fetch(url);
-				const data = await response.json();
-
-				// Map the OpenAlex response to your app's structure
-				return data.results.map((result: any) => ({
-					id: result.id,
-					display_name: result.display_name,
-					relevance_score: result.relevance_score || 0, // Include relevance_score
-				}));
-			});
-
-			const resultsArrays = await Promise.all(fetchPromises);
-			const combinedResults = resultsArrays.flat();
-
-			// Sort the combined results by relevance_score in descending order
-			combinedResults.sort(
-				(a, b) => b.relevance_score - a.relevance_score
-			);
-
-			// Update search results in context
-			setSearchResults([
-				{
-					meta: {
-						count: combinedResults.length,
-						db_response_time_ms: 0,
-						page: 1,
-						per_page: combinedResults.length,
-					},
-					results: combinedResults,
-				},
-			]);
-		} catch (error) {
-			console.error("Error fetching search results:", error);
-			setSearchResults([]);
-		}
+	const handleSearch = () => {
+		setCurrentPage(1);
+		setSearchResults([]);
+		performSearch(1);
 	};
 
 	useEffect(() => {
 		if (searchWhileTyping) {
-			performSearch();
+			setCurrentPage(1);
+			setSearchResults([]);
+			performSearch(1);
 		}
 	}, [query, entityType, searchWhileTyping]);
 
@@ -166,7 +206,7 @@ function SearchBar(): JSX.Element {
 				<option value="authors">Authors</option>
 				<option value="institutions">Institutions</option>
 				<option value="sources">Sources</option>
-				<option value="all">All</option> {/* Added "All" option */}
+				<option value="all">All</option>
 			</select>
 
 			<label>
@@ -177,26 +217,66 @@ function SearchBar(): JSX.Element {
 				/>
 				Search while typing
 			</label>
-			<button onClick={performSearch}>Search</button>
+
+			<select
+				value={perPage}
+				onChange={(e) => setPerPage(Number(e.target.value))}
+			>
+				<option value={10}>10 per page</option>
+				<option value={20}>20 per page</option>
+				<option value={50}>50 per page</option>
+				<option value={100}>100 per page</option>
+			</select>
+
+			<button onClick={handleSearch}>Search</button>
 		</div>
 	);
 }
-function SearchResults(): JSX.Element {
-	const { searchResults } = useContext(AppContext);
 
-	if (searchResults.length === 0 || searchResults[0].results.length === 0) {
+function SearchResults(): JSX.Element {
+	const {
+		searchResults,
+		currentPage,
+		setCurrentPage,
+		isLoading,
+		performSearch,
+		noMoreResults,
+	} = useContext(AppContext);
+
+	useEffect(() => {
+		const handleScroll = () => {
+			if (
+				window.innerHeight + window.scrollY >=
+					document.documentElement.scrollHeight - 500 &&
+				!isLoading &&
+				!noMoreResults
+			) {
+				// Load more results
+				const nextPage = currentPage + 1;
+				setCurrentPage(nextPage);
+				performSearch(nextPage);
+			}
+		};
+
+		window.addEventListener("scroll", handleScroll);
+		return () => window.removeEventListener("scroll", handleScroll);
+	}, [currentPage, isLoading, noMoreResults]);
+
+	if (searchResults.length === 0) {
 		return <p>No results found.</p>;
 	}
 
 	return (
 		<div className="search-results">
-			{searchResults[0].results.map((result) => (
+			{searchResults.map((result) => (
 				<div key={result.id} className="search-result">
 					<h3>{result.display_name}</h3>
 					<p>Relevance Score: {result.relevance_score.toFixed(2)}</p>
 					<p>Entity Type: {getEntityTypeFromId(result.id)}</p>
 				</div>
 			))}
+			{isLoading && <p>Loading more results...</p>}
+			{noMoreResults && <p>No more results.</p>}
 		</div>
 	);
 }
