@@ -7,7 +7,7 @@ import {
 	useState,
 } from "react";
 import { EntityType, Result, ThemeMode, ViewMode } from "./types";
-import { durationToMilliseconds } from "./util/time";
+import { durationToMilliseconds, msToString } from "./util/time";
 
 export interface AppContextType {
 	searchResults: Result[];
@@ -106,38 +106,13 @@ export function AppContextProvider({
 		const entityTypes =
 			entityType === "all" ? Object.values(EntityType) : [entityType];
 
-		const cacheKey = `searchResults:${encodeURIComponent(
-			query
-		)}:${entityType}:${page}:${perPage}`;
-
-		const cachedData = localStorage.getItem(cacheKey);
-		if (cachedData) {
-			const cacheEntry: { timestamp: number; data: Result[] } =
-				JSON.parse(cachedData);
-			const now = Date.now();
-			if (now - cacheEntry.timestamp < cacheExpiryMs) {
-				setSearchResults((prevResults) => {
-					const updatedResults = [...prevResults, ...cacheEntry.data];
-					return sortOnLoad
-						? updatedResults.sort(
-								(a, b) => b.relevance_score - a.relevance_score
-						  )
-						: updatedResults;
-				});
-				setIsLoading(false);
-				return;
-			} else {
-				localStorage.removeItem(cacheKey);
-			}
-		}
-
 		try {
 			const fetchPromises = entityTypes.map(async (type) => {
 				const url = `https://api.openalex.org/${type}?search=${encodeURIComponent(
 					query
 				)}&page=${page}&per_page=${perPage}`;
 
-				const response = await fetch(url);
+				const response = await fetchWithCache(url);
 				const data = await response.json();
 
 				return data.results.map((result: any) => ({
@@ -153,12 +128,6 @@ export function AppContextProvider({
 			if (combinedResults.length === 0) {
 				setNoMoreResults(true);
 			}
-
-			const cacheEntry = {
-				timestamp: Date.now(),
-				data: combinedResults,
-			};
-			localStorage.setItem(cacheKey, JSON.stringify(cacheEntry));
 
 			setSearchResults((prevResults) => {
 				const updatedResults = [...prevResults, ...combinedResults];
@@ -202,4 +171,105 @@ export function AppContextProvider({
 	};
 
 	return <AppContext.Provider value={context}>{children}</AppContext.Provider>;
+}
+
+export function computeCacheKey(
+	arg1: RequestInfo | URL,
+	arg2?: RequestInit | undefined
+): string {
+	const url = arg1 instanceof URL ? arg1.href : arg1;
+	const options = arg2 ? JSON.stringify(arg2) : "";
+	return ["fetch", url, options].filter(Boolean).join(":");
+}
+
+export const fetchWithCache: typeof fetch = async (
+	url: RequestInfo | URL,
+	options?: RequestInit | undefined
+): Promise<Response> => {
+	if (typeof url === "string") {
+		url = new URL(url);
+	}
+
+	const cacheKey = computeCacheKey(url, options);
+	const cachedData = getCache(cacheKey);
+
+	if (cachedData) {
+		return cachedData;
+	}
+
+	const response = await fetch(url.toString(), options);
+	if (!response.ok) {
+		throw new Error(`HTTP error! status: ${response.status}`);
+	}
+
+	await setCache(cacheKey, response.clone());
+	return response;
+};
+
+interface CacheItem {
+	data: {
+		bodyText: string;
+		status: number;
+		statusText: string;
+		headers: Record<string, string>;
+	};
+	timestamp: number;
+}
+
+export async function setCache(
+	key: string,
+	response: Response
+): Promise<Response> {
+	const clonedResponse = response.clone();
+	const bodyText = await clonedResponse.text();
+
+	const headers: Record<string, string> = {};
+	clonedResponse.headers.forEach((value, key) => {
+		headers[key] = value;
+	});
+
+	const data = {
+		bodyText,
+		status: clonedResponse.status,
+		statusText: clonedResponse.statusText,
+		headers,
+	};
+
+	const cacheItem: CacheItem = {
+		data,
+		timestamp: Date.now(),
+	};
+
+	localStorage.setItem(key, JSON.stringify(cacheItem));
+
+	return response;
+}
+
+export function getCache(
+	key: string,
+	maxCacheAge: number = durationToMilliseconds({ weeks: 1 })
+): Response | null {
+	const item = localStorage.getItem(key);
+	if (!item) return null;
+
+	const { data, timestamp }: CacheItem = JSON.parse(item);
+	const timeSinceCached = Date.now() - timestamp;
+
+	const cacheAge = msToString(timeSinceCached);
+
+	if (timeSinceCached > maxCacheAge) {
+		console.debug(`Cache expired for ${key} (${cacheAge} old)`);
+		localStorage.removeItem(key);
+		return null;
+	}
+	console.debug(`Cache hit for ${key} (${cacheAge} old)`);
+
+	const headers = new Headers(data.headers);
+
+	const responseInit: ResponseInit = {
+		status: data.status,
+		statusText: data.statusText,
+		headers,
+	};
+	return new Response(data.bodyText, responseInit);
 }
