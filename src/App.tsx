@@ -95,6 +95,19 @@ type TimeInterval = {
 	years?: number;
 };
 
+/**
+ * Converts a given time interval into milliseconds.
+ *
+ * @param {Object} timeInterval - The time interval to convert.
+ * @param {number} [timeInterval.seconds=0] - The number of seconds.
+ * @param {number} [timeInterval.minutes=0] - The number of minutes.
+ * @param {number} [timeInterval.hours=0] - The number of hours.
+ * @param {number} [timeInterval.days=0] - The number of days.
+ * @param {number} [timeInterval.weeks=0] - The number of weeks.
+ * @param {number} [timeInterval.months=0] - The number of months.
+ * @param {number} [timeInterval.years=0] - The number of years.
+ * @returns {number} The total time interval in milliseconds.
+ */
 function durationToMilliseconds({
 	seconds = 0,
 	minutes = 0,
@@ -115,8 +128,14 @@ function durationToMilliseconds({
 	);
 }
 
+/**
+ * Converts a given duration in milliseconds to a TimeInterval object.
+ * The TimeInterval object contains the duration broken down into years, months, weeks, days, hours, minutes, and seconds.
+ *
+ * @param {number} ms - The duration in milliseconds to be converted.
+ * @returns {TimeInterval} An object representing the duration in years, months, weeks, days, hours, minutes, and seconds.
+ */
 function msToDuration(ms: number): TimeInterval {
-	// find largest unit that fits and then recursively call for the remainder
 	if (ms >= yearsToMilliseconds(1)) {
 		const years = Math.floor(ms / yearsToMilliseconds(1));
 		return { years, ...msToDuration(ms % yearsToMilliseconds(1)) };
@@ -143,6 +162,12 @@ function msToDuration(ms: number): TimeInterval {
 	}
 }
 
+/**
+ * Converts a `TimeInterval` object to a human-readable string.
+ *
+ * @param duration - An object representing a time interval, where keys are time units (e.g., "seconds", "minutes") and values are the corresponding amounts.
+ * @returns A string representation of the time interval, excluding units with a value of 0.
+ */
 function durationToString(duration: TimeInterval): string {
 	const parts = Object.entries(duration)
 		.map(([unit, value]) => `${value} ${unit}`)
