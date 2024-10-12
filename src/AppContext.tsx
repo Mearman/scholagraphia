@@ -173,6 +173,19 @@ export function AppContextProvider({
 	return <AppContext.Provider value={context}>{children}</AppContext.Provider>;
 }
 
+import { openDB } from "idb";
+
+const DB_NAME = "fetchCacheDB";
+const STORE_NAME = "fetchCacheStore";
+
+async function getDB() {
+	return openDB(DB_NAME, 1, {
+		upgrade(db) {
+			db.createObjectStore(STORE_NAME, { keyPath: "key" });
+		},
+	});
+}
+
 export function computeCacheKey(
 	arg1: RequestInfo | URL,
 	arg2?: RequestInit | undefined
@@ -191,9 +204,9 @@ export const fetchWithCache: typeof fetch = async (
 	}
 
 	const cacheKey = computeCacheKey(url, options);
-	const cachedData = getCache(cacheKey);
+	const cachedData = await getCache(cacheKey);
 
-	if (cachedData) {
+	if (cachedData !== null) {
 		return cachedData;
 	}
 
@@ -240,26 +253,32 @@ export async function setCache(
 		timestamp: Date.now(),
 	};
 
-	localStorage.setItem(key, JSON.stringify(cacheItem));
+	const db = await getDB();
+	const tx = db.transaction(STORE_NAME, "readwrite");
+	await tx.store.put({ key, ...cacheItem });
+	await tx.done;
 
 	return response;
 }
 
-export function getCache(
+export async function getCache(
 	key: string,
 	maxCacheAge: number = durationToMilliseconds({ weeks: 1 })
-): Response | null {
-	const item = localStorage.getItem(key);
-	if (!item) return null;
+): Promise<Response | null> {
+	const db = await getDB();
+	const cacheItem = await db.get(STORE_NAME, key);
+	if (!cacheItem) return null;
 
-	const { data, timestamp }: CacheItem = JSON.parse(item);
+	const { data, timestamp }: CacheItem = cacheItem;
 	const timeSinceCached = Date.now() - timestamp;
 
 	const cacheAge = msToString(timeSinceCached);
 
 	if (timeSinceCached > maxCacheAge) {
 		console.debug(`Cache expired for ${key} (${cacheAge} old)`);
-		localStorage.removeItem(key);
+		const tx = db.transaction(STORE_NAME, "readwrite");
+		await tx.store.delete(key);
+		await tx.done;
 		return null;
 	}
 	console.debug(`Cache hit for ${key} (${cacheAge} old)`);
