@@ -2,9 +2,7 @@ import { useContext, useEffect } from "react";
 import { AppContext } from "../AppContext";
 import { ThemeMode, ViewMode } from "../types";
 
-export const themeOrder: ThemeMode[] = Array.from(
-	new Set(Object.values(ThemeMode))
-);
+export const themeOrder: ThemeMode[] = Array.from(new Set(Object.values(ThemeMode)));
 
 export function SearchBar(): JSX.Element {
 	const {
@@ -42,9 +40,7 @@ export function SearchBar(): JSX.Element {
 	};
 
 	const toggleTheme = () => {
-		setTheme(
-			(prevTheme: ThemeMode): ThemeMode => nextIndex(themeOrder, prevTheme)
-		);
+		setTheme((prevTheme: ThemeMode): ThemeMode => nextIndex(themeOrder, prevTheme));
 	};
 
 	useEffect(() => {
@@ -52,6 +48,17 @@ export function SearchBar(): JSX.Element {
 			handleSearch();
 		}
 	}, [query, entityType, searchWhileTyping]);
+
+	const getThemeIcon = () => {
+		switch (theme) {
+			case ThemeMode.light:
+				return "☀️";
+			case ThemeMode.dark:
+				return "🌑";
+			case ThemeMode.auto:
+				return "🖥️";
+		}
+	};
 
 	return (
 		<div className="search-bar">
@@ -66,10 +73,7 @@ export function SearchBar(): JSX.Element {
 				<button onClick={handleSearch}>Search</button>
 			</div>
 			<div className="search-options">
-				<select
-					value={entityType}
-					onChange={(e) => setEntityType(e.target.value)}
-				>
+				<select value={entityType} onChange={(e) => setEntityType(e.target.value)}>
 					<option value="works">Works</option>
 					<option value="concepts">Concepts</option>
 					<option value="authors">Authors</option>
@@ -77,49 +81,30 @@ export function SearchBar(): JSX.Element {
 					<option value="sources">Sources</option>
 					<option value="all">All</option>
 				</select>
-				<select
-					value={perPage}
-					onChange={(e) => setPerPage(Number(e.target.value))}
-				>
+				<select value={perPage} onChange={(e) => setPerPage(Number(e.target.value))}>
 					<option value={10}>10 per page</option>
 					<option value={20}>20 per page</option>
 					<option value={50}>50 per page</option>
 					<option value={100}>100 per page</option>
 				</select>
-				<select
-					value={viewMode}
-					onChange={(e) => setViewMode(e.target.value as ViewMode)}
-				>
+				<select value={viewMode} onChange={(e) => setViewMode(e.target.value as ViewMode)}>
 					<option value="grid">Grid View</option>
 					<option value="list">List View</option>
 				</select>
-				<button onClick={toggleTheme}>Toggle Theme</button>
+				<button onClick={toggleTheme}>{getThemeIcon()}</button>
 			</div>
 			<div className="search-settings">
 				<label>
-					<input
-						type="checkbox"
-						checked={searchWhileTyping}
-						onChange={(e) => setSearchWhileTyping(e.target.checked)}
-					/>
+					<input type="checkbox" checked={searchWhileTyping} onChange={(e) => setSearchWhileTyping(e.target.checked)} />
 					Search while typing
 				</label>
 				<label>
-					<input
-						type="checkbox"
-						checked={sortOnLoad}
-						onChange={(e) => setSortOnLoad(e.target.checked)}
-					/>
+					<input type="checkbox" checked={sortOnLoad} onChange={(e) => setSortOnLoad(e.target.checked)} />
 					Sort results when new page is loaded
 				</label>
 				<label>
 					Cache Expiry (ms):
-					<input
-						type="number"
-						min="0"
-						value={cacheExpiryMs}
-						onChange={(e) => setCacheExpiry(Number(e.target.value))}
-					/>
+					<input type="number" min="0" value={cacheExpiryMs} onChange={(e) => setCacheExpiry(Number(e.target.value))} />
 				</label>
 			</div>
 		</div>
