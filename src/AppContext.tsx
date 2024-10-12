@@ -57,7 +57,7 @@ const defaultContext: AppContextType = {
 		localStorage.getItem("searchWhileTyping") || "false"
 	),
 	setSearchWhileTyping: () => {},
-	sortOnLoad: true,
+	sortOnLoad: JSON.parse(localStorage.getItem("sortOnLoad") || "false"),
 	setSortOnLoad: () => {},
 	cacheExpiryMs: durationToMilliseconds({ weeks: 1 }),
 	setCacheExpiry: () => {},
@@ -86,7 +86,11 @@ export function AppContextProvider({
 	const [searchWhileTyping, setSearchWhileTyping] = useState<boolean>(
 		JSON.parse(localStorage.getItem("searchWhileTyping") || "false")
 	);
-	const [sortOnLoad, setSortOnLoad] = useState(defaultContext.sortOnLoad);
+
+	const [sortOnLoad, setSortOnLoad] = useState<boolean>(
+		JSON.parse(localStorage.getItem("sortOnLoad") || "false")
+	);
+
 	const [cacheExpiryMs, setCacheExpiry] = useState(
 		defaultContext.cacheExpiryMs
 	);
@@ -103,6 +107,10 @@ export function AppContextProvider({
 			JSON.stringify(searchWhileTyping)
 		);
 	}, [searchWhileTyping]);
+
+	useEffect(() => {
+		localStorage.setItem("sortOnLoad", JSON.stringify(sortOnLoad));
+	}, [sortOnLoad]);
 
 	const performSearch = async (page = currentPage) => {
 		if (!query || isLoading || noMoreResults) return;
