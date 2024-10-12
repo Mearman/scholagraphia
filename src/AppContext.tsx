@@ -108,9 +108,10 @@ export function AppContextProvider({
 
 		try {
 			const fetchPromises = entityTypes.map(async (type) => {
+				let perEntityPerPage = perPage / entityTypes.length;
 				const url = `https://api.openalex.org/${type}?search=${encodeURIComponent(
 					query
-				)}&page=${page}&per_page=${perPage}`;
+				)}&page=${page}&per_page=${perEntityPerPage}`;
 
 				const response = await fetchWithCache(url);
 				const data = await response.json();
