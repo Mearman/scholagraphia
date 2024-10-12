@@ -69,6 +69,20 @@ const defaultContext: AppContextType = {
 
 export const AppContext = createContext<AppContextType>(defaultContext);
 
+export function getPreference<T>(key: string, defaultValue: T): T {
+	const storedValue = localStorage.getItem(key);
+	const parsedValue = storedValue ? JSON.parse(storedValue) : defaultValue;
+	if (parsedValue) {
+		console.debug(`Retrieved ${key}: ${parsedValue}`);
+	}
+	return parsedValue;
+}
+
+export function setPreference<T>(key: string, value: T): void {
+	console.debug(`Setting ${key}: ${value}`);
+	localStorage.setItem(key, JSON.stringify(value));
+}
+
 export function AppContextProvider({
 	children,
 }: {
@@ -84,11 +98,11 @@ export function AppContextProvider({
 		defaultContext.noMoreResults
 	);
 	const [searchWhileTyping, setSearchWhileTyping] = useState<boolean>(
-		JSON.parse(localStorage.getItem("searchWhileTyping") || "false")
+		getPreference("searchWhileTyping", false)
 	);
 
 	const [sortOnLoad, setSortOnLoad] = useState<boolean>(
-		JSON.parse(localStorage.getItem("sortOnLoad") || "false")
+		getPreference("sortOnLoad", false)
 	);
 
 	const [cacheExpiryMs, setCacheExpiry] = useState(
@@ -102,14 +116,11 @@ export function AppContextProvider({
 	}, [theme]);
 
 	useEffect(() => {
-		localStorage.setItem(
-			"searchWhileTyping",
-			JSON.stringify(searchWhileTyping)
-		);
+		setPreference("searchWhileTyping", searchWhileTyping);
 	}, [searchWhileTyping]);
 
 	useEffect(() => {
-		localStorage.setItem("sortOnLoad", JSON.stringify(sortOnLoad));
+		setPreference("sortOnLoad", sortOnLoad);
 	}, [sortOnLoad]);
 
 	const performSearch = async (page = currentPage) => {
