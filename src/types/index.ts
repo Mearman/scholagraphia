@@ -18,3 +18,13 @@ const ViewMode = {
 } as const;
 type ViewMode = (typeof ViewMode)[keyof typeof ViewMode];
 export { ViewMode };
+
+const EntityType = {
+	works: "works",
+	concepts: "concepts",
+	authors: "authors",
+	institutions: "institutions",
+	sources: "sources",
+} as const;
+type EntityType = (typeof EntityType)[keyof typeof EntityType];
+export { EntityType };

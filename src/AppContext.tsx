@@ -6,7 +6,7 @@ import {
 	useEffect,
 	useState,
 } from "react";
-import { Result, ThemeMode, ViewMode } from "./types";
+import { EntityType, Result, ThemeMode, ViewMode } from "./types";
 import { durationToMilliseconds } from "./util/time";
 
 export interface AppContextType {
@@ -87,8 +87,8 @@ export function AppContextProvider({
 	const [cacheExpiryMs, setCacheExpiry] = useState(
 		defaultContext.cacheExpiryMs
 	);
-	const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-	const [theme, setTheme] = useState<"light" | "dark" | "auto">("auto");
+	const [viewMode, setViewMode] = useState<ViewMode>(ViewMode.grid);
+	const [theme, setTheme] = useState<ThemeMode>(ThemeMode.auto);
 
 	useEffect(() => {
 		document.documentElement.setAttribute("data-theme", theme);
@@ -104,9 +104,7 @@ export function AppContextProvider({
 		}
 
 		const entityTypes =
-			entityType === "all"
-				? ["works", "concepts", "authors", "institutions", "sources"]
-				: [entityType];
+			entityType === "all" ? Object.values(EntityType) : [entityType];
 
 		const cacheKey = `searchResults:${encodeURIComponent(
 			query
