@@ -106,8 +106,15 @@ main {
 /* Search Results Styles */
 .search-results {
 	display: grid;
-	grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
 	gap: 20px;
+}
+
+.search-results.grid {
+	grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+}
+
+.search-results.list {
+	grid-template-columns: 1fr;
 }
 
 .search-result {
@@ -159,7 +166,7 @@ footer {
 		flex-direction: column;
 	}
 
-	.search-results {
+	.search-results.grid {
 		grid-template-columns: 1fr;
 	}
 }

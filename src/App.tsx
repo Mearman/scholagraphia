@@ -36,6 +36,8 @@ interface AppContextType {
 	setSortOnLoad: Dispatch<SetStateAction<boolean>>;
 	cacheExpiryMs: number;
 	setCacheExpiry: Dispatch<SetStateAction<number>>;
+	viewMode: "grid" | "list";
+	setViewMode: Dispatch<SetStateAction<"grid" | "list">>;
 }
 
 const defaultContext: AppContextType = {
@@ -60,6 +62,8 @@ const defaultContext: AppContextType = {
 	setSortOnLoad: () => {},
 	cacheExpiryMs: durationToMilliseconds({ weeks: 1 }),
 	setCacheExpiry: () => {},
+	viewMode: "grid",
+	setViewMode: () => {},
 };
 
 function secondsToMilliseconds(seconds: number): number {
@@ -196,6 +200,7 @@ function AppContextProvider({
 	const [cacheExpiryMs, setCacheExpiry] = useState(
 		defaultContext.cacheExpiryMs
 	);
+	const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
 	const performSearch = async (page = currentPage) => {
 		if (!query || isLoading || noMoreResults) return;
@@ -300,6 +305,8 @@ function AppContextProvider({
 		setSortOnLoad,
 		cacheExpiryMs,
 		setCacheExpiry,
+		viewMode,
+		setViewMode,
 	};
 
 	return <AppContext.Provider value={context}>{children}</AppContext.Provider>;
@@ -343,6 +350,8 @@ function SearchBar(): JSX.Element {
 		setSortOnLoad,
 		cacheExpiryMs,
 		setCacheExpiry,
+		viewMode,
+		setViewMode,
 	} = useContext(AppContext);
 
 	const handleSearch = () => {
@@ -398,6 +407,13 @@ function SearchBar(): JSX.Element {
 					<option value={50}>50 per page</option>
 					<option value={100}>100 per page</option>
 				</select>
+				<select
+					value={viewMode}
+					onChange={(e) => setViewMode(e.target.value as "grid" | "list")}
+				>
+					<option value="grid">Grid View</option>
+					<option value="list">List View</option>
+				</select>
 			</div>
 			<div className="search-settings">
 				<label>
@@ -438,6 +454,7 @@ function SearchResults(): JSX.Element {
 		isLoading,
 		performSearch,
 		noMoreResults,
+		viewMode,
 	} = useContext(AppContext);
 
 	useEffect(() => {
@@ -463,7 +480,7 @@ function SearchResults(): JSX.Element {
 	}
 
 	return (
-		<div className="search-results">
+		<div className={`search-results ${viewMode}`}>
 			{searchResults.map((result) => (
 				<div key={result.id} className="search-result">
 					<h3>{result.display_name}</h3>
