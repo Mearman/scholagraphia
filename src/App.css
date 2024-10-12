@@ -6,26 +6,43 @@
 }
 
 /* Add theme styles */
+:root {
+	--primary-color: #3498db;
+	--primary-hover-color: #2980b9;
+	--secondary-color: #2c3e50;
+	--secondary-hover-color: #1a252f;
+	--background-color-light: #ffffff;
+	--background-color-dark: #000000;
+	--background-color-auto: #f4f4f4;
+	--text-color-light: #000000;
+	--text-color-dark: #ffffff;
+	--text-color-auto: #333333;
+	--border-radius: 8px;
+	--transition-duration: 0.3s;
+	--font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
 [data-theme="light"] {
-	--background-color: #ffffff;
-	--text-color: #000000;
+	--background-color: var(--background-color-light);
+	--text-color: var(--text-color-light);
 }
 
 [data-theme="dark"] {
-	--background-color: #000000;
-	--text-color: #ffffff;
+	--background-color: var(--background-color-dark);
+	--text-color: var(--text-color-dark);
 }
 
 [data-theme="auto"] {
-	--background-color: #f4f4f4;
-	--text-color: #333333;
+	--background-color: var(--background-color-auto);
+	--text-color: var(--text-color-auto);
 }
 
 body {
-	font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+	font-family: var(--font-family);
 	line-height: 1.6;
 	color: var(--text-color);
 	background-color: var(--background-color);
+	transition: background-color var(--transition-duration) ease, color var(--transition-duration) ease;
 }
 
 .app-container {
@@ -35,11 +52,12 @@ body {
 }
 
 header {
-	background-color: #2c3e50;
-	color: #ecf0f1;
+	background-color: var(--secondary-color);
+	color: var(--text-color-dark);
 	text-align: center;
 	padding: 20px 0;
 	margin-bottom: 20px;
+	border-radius: var(--border-radius);
 }
 
 h1 {
@@ -47,10 +65,11 @@ h1 {
 }
 
 main {
-	background-color: #fff;
-	border-radius: 8px;
+	background-color: var(--background-color);
+	border-radius: var(--border-radius);
 	box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 	padding: 20px;
+	transition: background-color var(--transition-duration) ease, box-shadow var(--transition-duration) ease;
 }
 
 /* Search Bar Styles */
@@ -69,21 +88,27 @@ main {
 	font-size: 1rem;
 	border: 1px solid #ddd;
 	border-radius: 4px 0 0 4px;
+	transition: border-color var(--transition-duration) ease;
+}
+
+.search-input input:focus {
+	border-color: var(--primary-color);
+	outline: none;
 }
 
 .search-input button {
 	padding: 10px 20px;
 	font-size: 1rem;
-	background-color: #3498db;
-	color: #fff;
+	background-color: var(--primary-color);
+	color: var(--text-color-dark);
 	border: none;
 	border-radius: 0 4px 4px 0;
 	cursor: pointer;
-	transition: background-color 0.3s ease;
+	transition: background-color var(--transition-duration) ease;
 }
 
 .search-input button:hover {
-	background-color: #2980b9;
+	background-color: var(--primary-hover-color);
 }
 
 .search-options {
@@ -97,6 +122,12 @@ main {
 	font-size: 0.9rem;
 	border: 1px solid #ddd;
 	border-radius: 4px;
+	transition: border-color var(--transition-duration) ease;
+}
+
+.search-options select:focus {
+	border-color: var(--primary-color);
+	outline: none;
 }
 
 .search-settings {
@@ -117,6 +148,12 @@ main {
 	padding: 5px;
 	border: 1px solid #ddd;
 	border-radius: 4px;
+	transition: border-color var(--transition-duration) ease;
+}
+
+.search-settings input[type="number"]:focus {
+	border-color: var(--primary-color);
+	outline: none;
 }
 
 /* Search Results Styles */
@@ -136,9 +173,9 @@ main {
 .search-result {
 	background-color: #f9f9f9;
 	border: 1px solid #e0e0e0;
-	border-radius: 8px;
+	border-radius: var(--border-radius);
 	padding: 15px;
-	transition: transform 0.2s ease, box-shadow 0.2s ease;
+	transition: transform var(--transition-duration) ease, box-shadow var(--transition-duration) ease;
 }
 
 .search-result:hover {
@@ -149,7 +186,7 @@ main {
 .search-result h3 {
 	font-size: 1.2rem;
 	margin-bottom: 10px;
-	color: #2c3e50;
+	color: var(--secondary-color);
 }
 
 .search-result p {
@@ -170,9 +207,9 @@ footer {
 	text-align: center;
 	margin-top: 20px;
 	padding: 10px;
-	background-color: #2c3e50;
-	color: #ecf0f1;
-	border-radius: 0 0 8px 8px;
+	background-color: var(--secondary-color);
+	color: var(--text-color-dark);
+	border-radius: var(--border-radius);
 }
 
 /* Responsive Design */
