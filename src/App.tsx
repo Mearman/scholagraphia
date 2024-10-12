@@ -63,6 +63,56 @@ const defaultContext: AppContextType = {
 	setCacheExpiry: () => {},
 };
 
+export function secondsToMilliseconds(seconds: number) {
+	return seconds * 1000;
+}
+export function minutesToMilliseconds(minutes: number) {
+	return secondsToMilliseconds(minutes * 60);
+}
+export function hoursToMilliseconds(hours: number) {
+	return minutesToMilliseconds(hours * 60);
+}
+export function daysToMilliseconds(days: number) {
+	return hoursToMilliseconds(days * 24);
+}
+export function weeksToMilliseconds(weeks: number) {
+	return daysToMilliseconds(weeks * 7);
+}
+export function monthsToMilliseconds(months: number, daysInMonth = 30) {
+	return daysToMilliseconds(months * daysInMonth);
+}
+export function yearsToMilliseconds(years: number) {
+	return daysToMilliseconds(years * 365);
+}
+
+export function durationToMilliseconds({
+	seconds = 0,
+	minutes = 0,
+	hours = 0,
+	days = 0,
+	weeks = 0,
+	months = 0,
+	years = 0,
+}: {
+	seconds?: number;
+	minutes?: number;
+	hours?: number;
+	days?: number;
+	weeks?: number;
+	months?: number;
+	years?: number;
+}): number {
+	return (
+		secondsToMilliseconds(seconds) +
+		minutesToMilliseconds(minutes) +
+		hoursToMilliseconds(hours) +
+		daysToMilliseconds(days) +
+		weeksToMilliseconds(weeks) +
+		monthsToMilliseconds(months) +
+		yearsToMilliseconds(years)
+	);
+}
+
 export const AppContext = createContext<AppContextType>(defaultContext);
 
 export function AppContextProvider({
@@ -79,7 +129,9 @@ export function AppContextProvider({
 	const [noMoreResults, setNoMoreResults] = useState<boolean>(false);
 	const [searchWhileTyping, setSearchWhileTyping] = useState<boolean>(false);
 	const [resortOnLoad, setResortOnLoad] = useState<boolean>(false);
-	const [cacheExpiry, setCacheExpiry] = useState<number>(3600000); // Default 1 hour
+	const [cacheExpiry, setCacheExpiry] = useState<number>(
+		durationToMilliseconds({ weeks: 1 })
+	);
 
 	const performSearch = async (page = currentPage) => {
 		if (!query || isLoading || noMoreResults) return;
