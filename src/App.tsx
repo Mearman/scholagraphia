@@ -35,7 +35,7 @@ interface AppContextType {
 	setSearchWhileTyping: Dispatch<SetStateAction<boolean>>;
 	sortOnLoad: boolean;
 	setSortOnLoad: Dispatch<SetStateAction<boolean>>;
-	cacheExpiry: number;
+	cacheExpiryMs: number;
 	setCacheExpiry: Dispatch<SetStateAction<number>>;
 }
 
@@ -59,7 +59,7 @@ const defaultContext: AppContextType = {
 	setSearchWhileTyping: () => {},
 	sortOnLoad: false,
 	setSortOnLoad: () => {},
-	cacheExpiry: durationToMilliseconds({ weeks: 1 }),
+	cacheExpiryMs: durationToMilliseconds({ weeks: 1 }),
 	setCacheExpiry: () => {},
 };
 
@@ -195,8 +195,8 @@ function AppContextProvider({
 	const [sortOnLoad, setSortOnLoad] = useState<boolean>(
 		defaultContext.sortOnLoad
 	);
-	const [cacheExpiry, setCacheExpiry] = useState<number>(
-		defaultContext.cacheExpiry
+	const [cacheExpiryMs, setCacheExpiry] = useState<number>(
+		defaultContext.cacheExpiryMs
 	);
 
 	const performSearch = async (page = currentPage) => {
@@ -225,7 +225,7 @@ function AppContextProvider({
 			const cacheEntry: { timestamp: number; data: Result[] } =
 				JSON.parse(cachedData);
 			const now = Date.now();
-			const isCachedDataFresh = now - cacheEntry.timestamp < cacheExpiry;
+			const isCachedDataFresh = now - cacheEntry.timestamp < cacheExpiryMs;
 			if (isCachedDataFresh) {
 				// Cache entry is valid
 				setSearchResults((prevResults) => {
@@ -285,9 +285,7 @@ function AppContextProvider({
 			setSearchResults((prevResults) => {
 				const updatedResults = [...prevResults, ...combinedResults];
 				if (sortOnLoad) {
-					updatedResults.sort(
-						(a, b) => b.relevance_score - a.relevance_score
-					);
+					updatedResults.sort((a, b) => b.relevance_score - a.relevance_score);
 				}
 				return updatedResults;
 			});
@@ -318,13 +316,11 @@ function AppContextProvider({
 		setSearchWhileTyping,
 		sortOnLoad,
 		setSortOnLoad,
-		cacheExpiry,
+		cacheExpiryMs,
 		setCacheExpiry,
 	};
 
-	return (
-		<AppContext.Provider value={context}>{children}</AppContext.Provider>
-	);
+	return <AppContext.Provider value={context}>{children}</AppContext.Provider>;
 }
 
 function App(): JSX.Element {
@@ -352,7 +348,7 @@ function SearchBar(): JSX.Element {
 		setSearchWhileTyping,
 		sortOnLoad,
 		setSortOnLoad,
-		cacheExpiry,
+		cacheExpiryMs,
 		setCacheExpiry,
 	} = useContext(AppContext);
 
@@ -424,14 +420,12 @@ function SearchBar(): JSX.Element {
 			</select>
 
 			<label>
-				Cache Expiry (minutes):
+				Cache Expiry (ms):
 				<input
 					type="number"
 					min="0"
-					value={cacheExpiry / 60000} // Convert ms to minutes
-					onChange={(e) =>
-						setCacheExpiry(Number(e.target.value) * 60000)
-					} // Convert minutes to ms
+					value={cacheExpiryMs}
+					onChange={(e) => setCacheExpiry(Number(e.target.value))}
 				/>
 			</label>
 
