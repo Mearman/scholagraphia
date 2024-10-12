@@ -3,6 +3,7 @@ import { createContext, Dispatch, SetStateAction, useState } from "react";
 interface Result {
 	id: number;
 	display_name: string;
+	relevance_score: number;
 }
 
 export interface Meta {
@@ -87,30 +88,39 @@ function SearchBar(): JSX.Element {
 	const { searchWhileTyping, setSearchWhileTyping, setSearchResults } =
 		useContext(AppContext);
 	const [query, setQuery] = useState("");
-	const [entityType, setEntityType] = useState("all");
+	const [entityType, setEntityType] = useState("works"); // Default to "works", can be changed
 
-	const performSearch = () => {
-		const filteredResults = [
-			{ id: 1, display_name: "John Doe", type: "person" },
-			{ id: 2, display_name: "Acme Corp", type: "organization" },
-			{ id: 3, display_name: "New York City", type: "location" },
-		].filter(
-			(result) =>
-				(entityType === "all" || result.type === entityType) &&
-				result.display_name.toLowerCase().includes(query.toLowerCase())
-		);
+	const performSearch = async () => {
+		if (!query) return; // Avoid searching if the query is empty
 
-		const dummyResults: SearchResult = {
-			meta: {
-				count: filteredResults.length,
-				db_response_time_ms: 0,
-				page: 1,
-				per_page: filteredResults.length,
-			},
-			results: filteredResults,
-		};
+		const url = `https://api.openalex.org/${entityType}?search=${encodeURIComponent(
+			query
+		)}`;
 
-		setSearchResults([dummyResults]);
+		try {
+			const response = await fetch(url);
+			const data = await response.json();
+
+			// Map the OpenAlex response to your app's structure
+			const searchResults = {
+				meta: {
+					count: data.meta.count,
+					db_response_time_ms: 0, // OpenAlex doesn't provide this, so it's 0
+					page: data.meta.page,
+					per_page: data.meta.per_page,
+				},
+				results: data.results.map((result: any) => ({
+					id: result.id,
+					display_name: result.display_name,
+				})),
+			};
+
+			// Update search results in context
+			setSearchResults([searchResults]);
+		} catch (error) {
+			console.error("Error fetching search results:", error);
+			setSearchResults([]);
+		}
 	};
 
 	useEffect(() => {
@@ -131,10 +141,11 @@ function SearchBar(): JSX.Element {
 				value={entityType}
 				onChange={(e) => setEntityType(e.target.value)}
 			>
-				<option value="all">All</option>
-				<option value="person">Person</option>
-				<option value="organization">Organization</option>
-				<option value="location">Location</option>
+				<option value="works">Works</option>
+				<option value="concepts">Concepts</option>
+				<option value="authors">Authors</option>
+				<option value="institutions">Institutions</option>
+				<option value="sources">Sources</option>
 			</select>
 
 			<label>
