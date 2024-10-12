@@ -14,6 +14,20 @@ interface Result {
 	relevance_score: number;
 }
 
+const themeMode = {
+	light: "light",
+	dark: "dark",
+	auto: "auto",
+} as const;
+type ThemeMode = (typeof themeMode)[keyof typeof themeMode];
+
+// type ViewMode = "grid" | "list";
+const viewMode = {
+	grid: "grid",
+	list: "list",
+} as const;
+type ViewMode = (typeof viewMode)[keyof typeof viewMode];
+
 interface AppContextType {
 	searchResults: Result[];
 	setSearchResults: Dispatch<SetStateAction<Result[]>>;
@@ -36,8 +50,10 @@ interface AppContextType {
 	setSortOnLoad: Dispatch<SetStateAction<boolean>>;
 	cacheExpiryMs: number;
 	setCacheExpiry: Dispatch<SetStateAction<number>>;
-	viewMode: "grid" | "list";
-	setViewMode: Dispatch<SetStateAction<"grid" | "list">>;
+	viewMode: ViewMode;
+	setViewMode: Dispatch<SetStateAction<ViewMode>>;
+	theme: ThemeMode;
+	setTheme: Dispatch<SetStateAction<ThemeMode>>;
 }
 
 const defaultContext: AppContextType = {
@@ -64,6 +80,8 @@ const defaultContext: AppContextType = {
 	setCacheExpiry: () => {},
 	viewMode: "grid",
 	setViewMode: () => {},
+	theme: "auto",
+	setTheme: () => {},
 };
 
 function secondsToMilliseconds(seconds: number): number {
@@ -201,6 +219,11 @@ function AppContextProvider({
 		defaultContext.cacheExpiryMs
 	);
 	const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+	const [theme, setTheme] = useState<"light" | "dark" | "auto">("auto");
+
+	useEffect(() => {
+		document.documentElement.setAttribute("data-theme", theme);
+	}, [theme]);
 
 	const performSearch = async (page = currentPage) => {
 		if (!query || isLoading || noMoreResults) return;
@@ -307,6 +330,8 @@ function AppContextProvider({
 		setCacheExpiry,
 		viewMode,
 		setViewMode,
+		theme,
+		setTheme,
 	};
 
 	return <AppContext.Provider value={context}>{children}</AppContext.Provider>;
@@ -352,6 +377,8 @@ function SearchBar(): JSX.Element {
 		setCacheExpiry,
 		viewMode,
 		setViewMode,
+		theme,
+		setTheme,
 	} = useContext(AppContext);
 
 	const handleSearch = () => {
@@ -364,6 +391,14 @@ function SearchBar(): JSX.Element {
 		if (e.key === "Enter") {
 			handleSearch();
 		}
+	};
+
+	const toggleTheme = () => {
+		setTheme((prevTheme) => {
+			if (prevTheme === "light") return "dark";
+			if (prevTheme === "dark") return "auto";
+			return "light";
+		});
 	};
 
 	useEffect(() => {
@@ -414,6 +449,7 @@ function SearchBar(): JSX.Element {
 					<option value="grid">Grid View</option>
 					<option value="list">List View</option>
 				</select>
+				<button onClick={toggleTheme}>Toggle Theme</button>
 			</div>
 			<div className="search-settings">
 				<label>
