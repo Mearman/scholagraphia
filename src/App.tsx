@@ -225,7 +225,8 @@ function AppContextProvider({
 			const cacheEntry: { timestamp: number; data: Result[] } =
 				JSON.parse(cachedData);
 			const now = Date.now();
-			if (now - cacheEntry.timestamp < cacheExpiry) {
+			const isCachedDataFresh = now - cacheEntry.timestamp < cacheExpiry;
+			if (isCachedDataFresh) {
 				// Cache entry is valid
 				setSearchResults((prevResults) => {
 					const updatedResults = [...prevResults, ...cacheEntry.data];
