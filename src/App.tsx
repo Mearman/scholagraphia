@@ -29,6 +29,8 @@ interface AppContextType {
 	performSearch: (page?: number) => Promise<void>;
 	searchWhileTyping: boolean;
 	setSearchWhileTyping: Dispatch<SetStateAction<boolean>>;
+	resortOnLoad: boolean;
+	setResortOnLoad: Dispatch<SetStateAction<boolean>>;
 }
 
 const defaultContext: AppContextType = {
@@ -49,6 +51,8 @@ const defaultContext: AppContextType = {
 	performSearch: async () => {},
 	searchWhileTyping: false,
 	setSearchWhileTyping: () => {},
+	resortOnLoad: false,
+	setResortOnLoad: () => {},
 };
 
 export const AppContext = createContext<AppContextType>(defaultContext);
@@ -66,6 +70,7 @@ export function AppContextProvider({
 	const [isLoading, setIsLoading] = useState<boolean>(false);
 	const [noMoreResults, setNoMoreResults] = useState<boolean>(false);
 	const [searchWhileTyping, setSearchWhileTyping] = useState<boolean>(false);
+	const [resortOnLoad, setResortOnLoad] = useState<boolean>(false);
 
 	const performSearch = async (page = currentPage) => {
 		if (!query || isLoading || noMoreResults) return;
@@ -100,18 +105,19 @@ export function AppContextProvider({
 			const resultsArrays = await Promise.all(fetchPromises);
 			const combinedResults = resultsArrays.flat();
 
-			combinedResults.sort(
-				(a, b) => b.relevance_score - a.relevance_score
-			);
-
 			if (combinedResults.length === 0) {
 				setNoMoreResults(true);
 			}
 
-			setSearchResults((prevResults) => [
-				...prevResults,
-				...combinedResults,
-			]);
+			setSearchResults((prevResults) => {
+				const updatedResults = [...prevResults, ...combinedResults];
+				if (resortOnLoad) {
+					updatedResults.sort(
+						(a, b) => b.relevance_score - a.relevance_score
+					);
+				}
+				return updatedResults;
+			});
 		} catch (error) {
 			console.error("Error fetching search results:", error);
 		} finally {
@@ -137,6 +143,8 @@ export function AppContextProvider({
 		performSearch,
 		searchWhileTyping,
 		setSearchWhileTyping,
+		resortOnLoad,
+		setResortOnLoad,
 	};
 
 	return (
@@ -173,6 +181,8 @@ function SearchBar(): JSX.Element {
 		performSearch,
 		searchWhileTyping,
 		setSearchWhileTyping,
+		resortOnLoad,
+		setResortOnLoad,
 	} = useContext(AppContext);
 
 	const handleSearch = () => {
@@ -217,7 +227,14 @@ function SearchBar(): JSX.Element {
 				/>
 				Search while typing
 			</label>
-
+			<label>
+				<input
+					type="checkbox"
+					checked={resortOnLoad}
+					onChange={(e) => setResortOnLoad(e.target.checked)}
+				/>
+				Resort results when new page is loaded
+			</label>
 			<select
 				value={perPage}
 				onChange={(e) => setPerPage(Number(e.target.value))}
