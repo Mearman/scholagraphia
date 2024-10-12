@@ -73,10 +73,16 @@ export function AppContextProvider({ children }: { children: ReactNode }): React
 	const [searchWhileTyping, setSearchWhileTyping] = useState<boolean>(defaultContext.searchWhileTyping);
 	const [sortOnLoad, setSortOnLoad] = useState<boolean>(defaultContext.sortOnLoad);
 	const [cacheExpiryMs, setCacheExpiry] = useState(defaultContext.cacheExpiryMs);
-	const [viewMode, setViewMode] = useState<ViewMode>(ViewMode.grid);
-	const [theme, setTheme] = useState<ThemeMode>(ThemeMode.auto);
+	const [viewMode, setViewMode] = useState<ViewMode>(defaultContext.viewMode);
+	const [theme, setTheme] = useState<ThemeMode>(defaultContext.theme);
 
 	useEffect(() => {
+		const savedTheme = getPreference<ThemeMode>("theme", ThemeMode.auto);
+		setTheme(savedTheme);
+	}, []);
+
+	useEffect(() => {
+		setPreference("theme", theme);
 		document.documentElement.setAttribute("data-theme", theme);
 	}, [theme]);
 
@@ -91,10 +97,6 @@ export function AppContextProvider({ children }: { children: ReactNode }): React
 	useEffect(() => {
 		setPreference("viewMode", viewMode);
 	}, [viewMode]);
-
-	useEffect(() => {
-		setPreference("theme", theme);
-	}, [theme]);
 
 	const performSearch = async (page = currentPage) => {
 		if (!query || isLoading || noMoreResults) return;
