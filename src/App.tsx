@@ -1,7 +1,11 @@
-import React, {
-	createContext,
+// AppContext.tsx
+
+import {
 	Dispatch,
 	SetStateAction,
+	createContext,
+	useContext,
+	useEffect,
 	useState,
 } from "react";
 
@@ -31,6 +35,8 @@ interface AppContextType {
 	setSearchWhileTyping: Dispatch<SetStateAction<boolean>>;
 	resortOnLoad: boolean;
 	setResortOnLoad: Dispatch<SetStateAction<boolean>>;
+	cacheExpiry: number;
+	setCacheExpiry: Dispatch<SetStateAction<number>>;
 }
 
 const defaultContext: AppContextType = {
@@ -53,6 +59,8 @@ const defaultContext: AppContextType = {
 	setSearchWhileTyping: () => {},
 	resortOnLoad: false,
 	setResortOnLoad: () => {},
+	cacheExpiry: 3600000, // Default expiry time is 1 hour
+	setCacheExpiry: () => {},
 };
 
 export const AppContext = createContext<AppContextType>(defaultContext);
@@ -71,6 +79,7 @@ export function AppContextProvider({
 	const [noMoreResults, setNoMoreResults] = useState<boolean>(false);
 	const [searchWhileTyping, setSearchWhileTyping] = useState<boolean>(false);
 	const [resortOnLoad, setResortOnLoad] = useState<boolean>(false);
+	const [cacheExpiry, setCacheExpiry] = useState<number>(3600000); // Default 1 hour
 
 	const performSearch = async (page = currentPage) => {
 		if (!query || isLoading || noMoreResults) return;
@@ -85,6 +94,36 @@ export function AppContextProvider({
 			entityType === "all"
 				? ["works", "concepts", "authors", "institutions", "sources"]
 				: [entityType];
+
+		// Build cache key
+		const cacheKey = `searchResults:${encodeURIComponent(
+			query
+		)}:${entityType}:${page}:${perPage}`;
+
+		// Try to get from cache
+		const cachedData = localStorage.getItem(cacheKey);
+		if (cachedData) {
+			const cacheEntry: { timestamp: number; data: Result[] } =
+				JSON.parse(cachedData);
+			const now = Date.now();
+			if (now - cacheEntry.timestamp < cacheExpiry) {
+				// Cache entry is valid
+				setSearchResults((prevResults) => {
+					const updatedResults = [...prevResults, ...cacheEntry.data];
+					if (resortOnLoad) {
+						updatedResults.sort(
+							(a, b) => b.relevance_score - a.relevance_score
+						);
+					}
+					return updatedResults;
+				});
+				setIsLoading(false);
+				return;
+			} else {
+				// Cache entry is expired
+				localStorage.removeItem(cacheKey);
+			}
+		}
 
 		try {
 			const fetchPromises = entityTypes.map(async (type) => {
@@ -108,6 +147,13 @@ export function AppContextProvider({
 			if (combinedResults.length === 0) {
 				setNoMoreResults(true);
 			}
+
+			// Cache the results
+			const cacheEntry = {
+				timestamp: Date.now(),
+				data: combinedResults,
+			};
+			localStorage.setItem(cacheKey, JSON.stringify(cacheEntry));
 
 			setSearchResults((prevResults) => {
 				const updatedResults = [...prevResults, ...combinedResults];
@@ -145,15 +191,14 @@ export function AppContextProvider({
 		setSearchWhileTyping,
 		resortOnLoad,
 		setResortOnLoad,
+		cacheExpiry,
+		setCacheExpiry,
 	};
 
 	return (
 		<AppContext.Provider value={context}>{children}</AppContext.Provider>
 	);
 }
-
-import { useContext } from "react";
-import "./App.css";
 
 function App(): JSX.Element {
 	return (
@@ -163,10 +208,9 @@ function App(): JSX.Element {
 		</AppContextProvider>
 	);
 }
-
 export default App;
 
-import { useEffect } from "react";
+// SearchBar.tsx
 
 function SearchBar(): JSX.Element {
 	const {
@@ -183,6 +227,8 @@ function SearchBar(): JSX.Element {
 		setSearchWhileTyping,
 		resortOnLoad,
 		setResortOnLoad,
+		cacheExpiry,
+		setCacheExpiry,
 	} = useContext(AppContext);
 
 	const handleSearch = () => {
@@ -245,10 +291,24 @@ function SearchBar(): JSX.Element {
 				<option value={100}>100 per page</option>
 			</select>
 
+			<label>
+				Cache Expiry (minutes):
+				<input
+					type="number"
+					min="0"
+					value={cacheExpiry / 60000} // Convert ms to minutes
+					onChange={(e) =>
+						setCacheExpiry(Number(e.target.value) * 60000)
+					} // Convert minutes to ms
+				/>
+			</label>
+
 			<button onClick={handleSearch}>Search</button>
 		</div>
 	);
 }
+
+// SearchResults.tsx
 
 function SearchResults(): JSX.Element {
 	const {
@@ -277,7 +337,7 @@ function SearchResults(): JSX.Element {
 
 		window.addEventListener("scroll", handleScroll);
 		return () => window.removeEventListener("scroll", handleScroll);
-	}, [currentPage, isLoading, noMoreResults]);
+	}, [currentPage, isLoading, noMoreResults, performSearch]);
 
 	if (searchResults.length === 0) {
 		return <p>No results found.</p>;
