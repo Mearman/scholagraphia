@@ -111,8 +111,8 @@ export function SearchBar(): JSX.Element {
 	);
 }
 
-function nextIndex(themeOrder: ThemeMode[], prevTheme: string): ThemeMode {
-	const currentIndex = themeOrder.indexOf(prevTheme as ThemeMode);
-	const nextIndex = (currentIndex + 1) % themeOrder.length;
-	return themeOrder[nextIndex];
+function nextIndex<T>(order: T[], previous: T): T {
+	const currentIndex = order.indexOf(previous as T);
+	const nextIndex = (currentIndex + 1) % order.length;
+	return order[nextIndex];
 }
