@@ -49,9 +49,7 @@ export function SearchBar(): JSX.Element {
 
 	useEffect(() => {
 		if (searchWhileTyping) {
-			setCurrentPage(1);
-			setSearchResults([]);
-			performSearch(1);
+			handleSearch();
 		}
 	}, [query, entityType, searchWhileTyping]);
 
@@ -127,6 +125,7 @@ export function SearchBar(): JSX.Element {
 		</div>
 	);
 }
+
 function nextIndex(themeOrder: ThemeMode[], prevTheme: string): ThemeMode {
 	const currentIndex = themeOrder.indexOf(prevTheme as ThemeMode);
 	const nextIndex = (currentIndex + 1) % themeOrder.length;

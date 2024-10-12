@@ -53,7 +53,9 @@ const defaultContext: AppContextType = {
 	noMoreResults: false,
 	setNoMoreResults: () => {},
 	performSearch: async () => {},
-	searchWhileTyping: false,
+	searchWhileTyping: JSON.parse(
+		localStorage.getItem("searchWhileTyping") || "false"
+	),
 	setSearchWhileTyping: () => {},
 	sortOnLoad: true,
 	setSortOnLoad: () => {},
@@ -61,9 +63,10 @@ const defaultContext: AppContextType = {
 	setCacheExpiry: () => {},
 	viewMode: "grid",
 	setViewMode: () => {},
-	theme: ThemeMode.auto,
+	theme: "light",
 	setTheme: () => {},
 };
+
 export const AppContext = createContext<AppContextType>(defaultContext);
 
 export function AppContextProvider({
@@ -80,8 +83,8 @@ export function AppContextProvider({
 	const [noMoreResults, setNoMoreResults] = useState(
 		defaultContext.noMoreResults
 	);
-	const [searchWhileTyping, setSearchWhileTyping] = useState(
-		defaultContext.searchWhileTyping
+	const [searchWhileTyping, setSearchWhileTyping] = useState<boolean>(
+		JSON.parse(localStorage.getItem("searchWhileTyping") || "false")
 	);
 	const [sortOnLoad, setSortOnLoad] = useState(defaultContext.sortOnLoad);
 	const [cacheExpiryMs, setCacheExpiry] = useState(
@@ -93,6 +96,13 @@ export function AppContextProvider({
 	useEffect(() => {
 		document.documentElement.setAttribute("data-theme", theme);
 	}, [theme]);
+
+	useEffect(() => {
+		localStorage.setItem(
+			"searchWhileTyping",
+			JSON.stringify(searchWhileTyping)
+		);
+	}, [searchWhileTyping]);
 
 	const performSearch = async (page = currentPage) => {
 		if (!query || isLoading || noMoreResults) return;
