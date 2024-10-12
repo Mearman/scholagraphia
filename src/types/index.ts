@@ -5,9 +5,9 @@ export interface Result {
 }
 
 const ThemeMode = {
+	auto: "auto",
 	light: "light",
 	dark: "dark",
-	auto: "auto",
 } as const;
 type ThemeMode = (typeof ThemeMode)[keyof typeof ThemeMode];
 export { ThemeMode };

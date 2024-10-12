@@ -1,5 +1,10 @@
 import { useContext, useEffect } from "react";
 import { AppContext } from "../AppContext";
+import { ThemeMode, ViewMode } from "../types";
+
+export const themeOrder: ThemeMode[] = Array.from(
+	new Set(Object.values(ThemeMode))
+);
 
 export function SearchBar(): JSX.Element {
 	const {
@@ -37,11 +42,9 @@ export function SearchBar(): JSX.Element {
 	};
 
 	const toggleTheme = () => {
-		setTheme((prevTheme) => {
-			if (prevTheme === "light") return "dark";
-			if (prevTheme === "dark") return "auto";
-			return "light";
-		});
+		setTheme(
+			(prevTheme: ThemeMode): ThemeMode => nextIndex(themeOrder, prevTheme)
+		);
 	};
 
 	useEffect(() => {
@@ -87,7 +90,7 @@ export function SearchBar(): JSX.Element {
 				</select>
 				<select
 					value={viewMode}
-					onChange={(e) => setViewMode(e.target.value as "grid" | "list")}
+					onChange={(e) => setViewMode(e.target.value as ViewMode)}
 				>
 					<option value="grid">Grid View</option>
 					<option value="list">List View</option>
@@ -123,4 +126,9 @@ export function SearchBar(): JSX.Element {
 			</div>
 		</div>
 	);
+}
+function nextIndex(themeOrder: ThemeMode[], prevTheme: string): ThemeMode {
+	const currentIndex = themeOrder.indexOf(prevTheme as ThemeMode);
+	const nextIndex = (currentIndex + 1) % themeOrder.length;
+	return themeOrder[nextIndex];
 }
