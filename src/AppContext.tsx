@@ -1,12 +1,7 @@
-import {
-	createContext,
-	Dispatch,
-	ReactNode,
-	SetStateAction,
-	useEffect,
-	useState,
-} from "react";
+import { openDB } from "idb";
+import { Context, createContext, Dispatch, ReactElement, ReactNode, SetStateAction, useEffect, useState } from "react";
 import { EntityType, Result, ThemeMode, ViewMode } from "./types";
+import { getPreference, setPreference } from "./util/preferences.ts";
 import { durationToMilliseconds, msToString } from "./util/time";
 
 export interface AppContextType {
@@ -53,61 +48,31 @@ const defaultContext: AppContextType = {
 	noMoreResults: false,
 	setNoMoreResults: () => {},
 	performSearch: async () => {},
-	searchWhileTyping: JSON.parse(
-		localStorage.getItem("searchWhileTyping") || "false"
-	),
+	searchWhileTyping: getPreference<boolean>("searchWhileTyping", true),
 	setSearchWhileTyping: () => {},
-	sortOnLoad: JSON.parse(localStorage.getItem("sortOnLoad") || "false"),
+	sortOnLoad: getPreference("sortOnLoad", true),
 	setSortOnLoad: () => {},
 	cacheExpiryMs: durationToMilliseconds({ weeks: 1 }),
 	setCacheExpiry: () => {},
-	viewMode: "grid",
+	viewMode: getPreference<ViewMode>("viewMode", ViewMode.grid),
 	setViewMode: () => {},
-	theme: "light",
+	theme: getPreference<ThemeMode>("theme", ThemeMode.auto),
 	setTheme: () => {},
 };
 
-export const AppContext = createContext<AppContextType>(defaultContext);
+export const AppContext: Context<AppContextType> = createContext<AppContextType>(defaultContext);
 
-export function getPreference<T>(key: string, defaultValue: T): T {
-	const storedValue = localStorage.getItem(key);
-	const parsedValue = storedValue ? JSON.parse(storedValue) : defaultValue;
-	if (parsedValue) {
-		console.debug(`Retrieved ${key}: ${parsedValue}`);
-	}
-	return parsedValue;
-}
-
-export function setPreference<T>(key: string, value: T): void {
-	console.debug(`Setting ${key}: ${value}`);
-	localStorage.setItem(key, JSON.stringify(value));
-}
-
-export function AppContextProvider({
-	children,
-}: {
-	children: ReactNode;
-}): JSX.Element {
+export function AppContextProvider({ children }: { children: ReactNode }): ReactElement {
 	const [searchResults, setSearchResults] = useState<Result[]>([]);
 	const [query, setQuery] = useState("");
 	const [entityType, setEntityType] = useState(defaultContext.entityType);
 	const [currentPage, setCurrentPage] = useState(defaultContext.currentPage);
 	const [perPage, setPerPage] = useState(defaultContext.perPage);
 	const [isLoading, setIsLoading] = useState(defaultContext.isLoading);
-	const [noMoreResults, setNoMoreResults] = useState(
-		defaultContext.noMoreResults
-	);
-	const [searchWhileTyping, setSearchWhileTyping] = useState<boolean>(
-		getPreference("searchWhileTyping", false)
-	);
-
-	const [sortOnLoad, setSortOnLoad] = useState<boolean>(
-		getPreference("sortOnLoad", false)
-	);
-
-	const [cacheExpiryMs, setCacheExpiry] = useState(
-		defaultContext.cacheExpiryMs
-	);
+	const [noMoreResults, setNoMoreResults] = useState(defaultContext.noMoreResults);
+	const [searchWhileTyping, setSearchWhileTyping] = useState<boolean>(defaultContext.searchWhileTyping);
+	const [sortOnLoad, setSortOnLoad] = useState<boolean>(defaultContext.sortOnLoad);
+	const [cacheExpiryMs, setCacheExpiry] = useState(defaultContext.cacheExpiryMs);
 	const [viewMode, setViewMode] = useState<ViewMode>(ViewMode.grid);
 	const [theme, setTheme] = useState<ThemeMode>(ThemeMode.auto);
 
@@ -123,6 +88,14 @@ export function AppContextProvider({
 		setPreference("sortOnLoad", sortOnLoad);
 	}, [sortOnLoad]);
 
+	useEffect(() => {
+		setPreference("viewMode", viewMode);
+	}, [viewMode]);
+
+	useEffect(() => {
+		setPreference("theme", theme);
+	}, [theme]);
+
 	const performSearch = async (page = currentPage) => {
 		if (!query || isLoading || noMoreResults) return;
 
@@ -132,8 +105,7 @@ export function AppContextProvider({
 			setNoMoreResults(false);
 		}
 
-		const entityTypes =
-			entityType === "all" ? Object.values(EntityType) : [entityType];
+		const entityTypes = entityType === "all" ? Object.values(EntityType) : [entityType];
 
 		try {
 			const resultsArrays = [];
@@ -146,10 +118,7 @@ export function AppContextProvider({
 				url.searchParams.append("search", query);
 				url.searchParams.append("page", page.toString());
 				url.searchParams.append("per_page", perEntityPerPage.toString());
-				url.searchParams.append(
-					"select",
-					["id", "display_name", "relevance_score"].join(",")
-				);
+				url.searchParams.append("select", ["id", "display_name", "relevance_score"].join(","));
 
 				const response = await fetchWithCache(url);
 				const data = await response.json();
@@ -171,9 +140,7 @@ export function AppContextProvider({
 
 			setSearchResults((prevResults) => {
 				const updatedResults = [...prevResults, ...combinedResults];
-				return sortOnLoad
-					? updatedResults.sort((a, b) => b.relevance_score - a.relevance_score)
-					: updatedResults;
+				return sortOnLoad ? updatedResults.sort((a, b) => b.relevance_score - a.relevance_score) : updatedResults;
 			});
 		} catch (error) {
 			console.error("Error fetching search results:", error);
@@ -213,8 +180,6 @@ export function AppContextProvider({
 	return <AppContext.Provider value={context}>{children}</AppContext.Provider>;
 }
 
-import { openDB } from "idb";
-
 const DB_NAME = "fetchCacheDB";
 const STORE_NAME = "fetchCacheStore";
 
@@ -226,10 +191,7 @@ async function getDB() {
 	});
 }
 
-export function computeCacheKey(
-	arg1: RequestInfo | URL,
-	arg2?: RequestInit | undefined
-): string {
+export function computeCacheKey(arg1: RequestInfo | URL, arg2?: RequestInit | undefined): string {
 	const url = arg1 instanceof URL ? arg1.href : arg1;
 	const options = arg2 ? JSON.stringify(arg2) : "";
 	return ["fetch", url, options].filter(Boolean).join(":");
@@ -275,10 +237,7 @@ interface CacheItem {
 	timestamp: number;
 }
 
-export async function setCache(
-	key: string,
-	response: Response
-): Promise<Response> {
+export async function setCache(key: string, response: Response): Promise<Response> {
 	const clonedResponse = response.clone();
 	const bodyText = await clonedResponse.text();
 
