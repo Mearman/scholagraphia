@@ -33,7 +33,11 @@ export const CollectionListProvider: React.FC<CollectionListProviderProps> = ({ 
 			const savedActiveCollection = collections.find((collection) => collection.id === savedActiveCollectionId);
 			if (savedActiveCollection) {
 				setActiveCollection(savedActiveCollection);
+			} else if (collections.length > 0) {
+				selectMostRecentCollection();
 			}
+		} else if (collections.length > 0) {
+			selectMostRecentCollection();
 		}
 	}, [collections]);
 
@@ -54,12 +58,6 @@ export const CollectionListProvider: React.FC<CollectionListProviderProps> = ({ 
 			setActiveCollection(mostRecent);
 		}
 	};
-
-	useEffect(() => {
-		if (collections.length > 0 && !activeCollection) {
-			selectMostRecentCollection();
-		}
-	}, [collections, activeCollection]);
 
 	const handleClone = async (collection: string) => {
 		const newCollection = await clone(collection);
