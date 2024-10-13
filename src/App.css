@@ -369,3 +369,29 @@ button {
 	transition: background-color 0.3s ease;
 	margin: 0.1rem;
 }
+
+.collected-item {
+	background-color: var(--card-background-color-light);
+	padding: 1rem;
+	margin-bottom: 1rem;
+	border-radius: 8px;
+	box-shadow: 0 2px 4px var(--shadow-color);
+}
+
+[data-theme="dark"] .collected-item {
+	background-color: var(--card-background-color-dark);
+}
+
+.collected-item h4 {
+	margin-top: 0;
+	color: var(--primary-color);
+}
+
+.collected-item p {
+	margin: 0.5rem 0;
+	font-size: 0.9rem;
+}
+
+.collected-item button {
+	margin-top: 0.5rem;
+}

@@ -1,6 +1,6 @@
 import { openDB } from "idb";
 import { Context, createContext, Dispatch, ReactElement, ReactNode, SetStateAction, useEffect, useState } from "react";
-import { EntityType, Result, ThemeMode, ViewMode } from "./types";
+import { EntityEndpointPath, Result, ThemeMode, ViewMode } from "./types";
 import { getPreference, setPreference } from "./util/preferences.ts";
 import { durationToMilliseconds, msToString } from "./util/time";
 
@@ -30,6 +30,7 @@ export interface AppContextType {
 	setViewMode: Dispatch<SetStateAction<ViewMode>>;
 	theme: ThemeMode;
 	setTheme: Dispatch<SetStateAction<ThemeMode>>;
+	fetchWithCache: typeof fetch
 }
 
 const defaultContext: AppContextType = {
@@ -58,6 +59,7 @@ const defaultContext: AppContextType = {
 	setViewMode: () => {},
 	theme: getPreference<ThemeMode>("theme", ThemeMode.auto),
 	setTheme: () => {},
+	fetchWithCache: fetch,
 };
 
 export const AppContext: Context<AppContextType> = createContext<AppContextType>(defaultContext);
@@ -107,13 +109,13 @@ export function AppContextProvider({ children }: { children: ReactNode }): React
 			setNoMoreResults(false);
 		}
 
-		const entityTypes = entityType === "all" ? Object.values(EntityType) : [entityType];
+		const entityTypes = entityType === "all" ? Object.values(EntityEndpointPath) : [entityType];
 
 		try {
 			const resultsArrays = [];
 
 			const perEntityPerPage = perPage;
-			// const perEntityPerPage = perPage / entityTypes.length;
+			// const perEntityPerPage = perPage / entityTypes.length;1
 
 			for await (const type of entityTypes) {
 				const url = new URL("https://api.openalex.org/" + type);
@@ -177,6 +179,7 @@ export function AppContextProvider({ children }: { children: ReactNode }): React
 		setViewMode,
 		theme,
 		setTheme,
+		fetchWithCache,
 	};
 
 	return <AppContext.Provider value={context}>{children}</AppContext.Provider>;
