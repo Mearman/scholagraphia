@@ -28,3 +28,9 @@ const EntityType = {
 } as const;
 type EntityType = (typeof EntityType)[keyof typeof EntityType];
 export { EntityType };
+
+export interface Collection {
+    id: string;
+    name: string;
+    items: string[];
+}
