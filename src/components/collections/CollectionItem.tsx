@@ -1,7 +1,12 @@
 import { useState } from "react";
 import { useCollectionContext } from "../../contexts/CollectionContext";
 
-export function CollectionItem() {
+interface CollectionItemProps {
+	isActive: boolean;
+	onSelect: () => void;
+}
+
+export function CollectionItem({ isActive, onSelect }: CollectionItemProps) {
 	const { collection, handleSelect, handleClone, handleDelete, handleRename } = useCollectionContext();
 	const [isRenaming, setIsRenaming] = useState(false);
 	const [newName, setNewName] = useState(collection.name);
@@ -12,7 +17,7 @@ export function CollectionItem() {
 	};
 
 	return (
-		<li>
+		<li style={{ backgroundColor: isActive ? "lightblue" : "transparent" }}>
 			{isRenaming ? (
 				<>
 					<input type="text" value={newName} onChange={(e) => setNewName(e.target.value)} />
@@ -21,7 +26,14 @@ export function CollectionItem() {
 				</>
 			) : (
 				<>
-					<span onClick={handleSelect}>{collection.name}</span>
+					<span
+						onClick={() => {
+							handleSelect();
+							onSelect();
+						}}
+					>
+						{collection.name}
+					</span>
 					<button onClick={handleClone}>Clone</button>
 					<button onClick={handleDelete}>Delete</button>
 					<button onClick={() => setIsRenaming(true)}>Rename</button>
