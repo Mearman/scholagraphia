@@ -1,13 +1,6 @@
-import { createContext, ReactNode, useContext, useEffect, useState } from "react";
+import { createContext, PropsWithChildren, useContext, useState } from "react";
+import { CollectionsHook, Status } from "../api/useCollections.ts";
 import { Collection } from "../types";
-import {
-	cloneCollection,
-	createCollection,
-	deleteCollection,
-	getCollections,
-	isoString,
-	renameCollection,
-} from "../api/collections.tsx";
 
 interface CollectionListContextType {
 	collections: Collection[];
@@ -17,54 +10,38 @@ interface CollectionListContextType {
 	handleDelete: (id: string) => void;
 	handleCreate: () => void;
 	handleRename: (id: string, newName: string) => void;
+	status: Status;
 }
 
 const CollectionListContext = createContext<CollectionListContextType | undefined>(undefined);
 
-interface CollectionListProviderProps {
-	children: ReactNode;
-}
+type CollectionListProviderProps = {
+	collectionsHook: CollectionsHook;
+} & PropsWithChildren;
 
-export const CollectionListProvider: React.FC<CollectionListProviderProps> = ({ children }) => {
-	const [collections, setCollections] = useState<Collection[]>([]);
+export const CollectionListProvider: React.FC<CollectionListProviderProps> = ({ children, collectionsHook }) => {
 	const [activeCollection, setActiveCollection] = useState<Collection | null>(null);
-
-	useEffect(() => {
-		async function fetchCollections() {
-			const collections = await getCollections();
-			setCollections(collections);
-		}
-		fetchCollections();
-	}, []);
-
+	const { collections, clone, remove, create, rename, status } = collectionsHook;
+	const handleClone = async (collection: Collection) => {
+		const newCollection = await clone(collection);
+		setActiveCollection(newCollection);
+	}
+	const handleDelete = async (id: string) => {
+		await remove(id);
+		setActiveCollection(null);
+	}
+	const handleCreate = async () => {
+		const newCollection = await create();
+		setActiveCollection(newCollection);
+	}
+	const handleRename = async (id: string, newName: string) => {
+		await rename(id, newName);
+	}
 	const handleSelect = (collection: Collection) => {
 		setActiveCollection(collection);
 	};
 
-	const handleClone = async (collection: Collection) => {
-		const newCollection = await cloneCollection(collection);
-		setCollections([...collections, newCollection]);
-	};
-
-	const handleDelete = async (id: string) => {
-		await deleteCollection(id);
-		setCollections(collections.filter((collection) => collection.id !== id));
-		if (activeCollection?.id === id) {
-			setActiveCollection(null);
-		}
-	};
-
-	const handleCreate = async (name: string = isoString()) => {
-		const newCollection = await createCollection(name);
-		setCollections([...collections, newCollection]);
-	};
-
-	const handleRename = async (id: string, newName: string) => {
-		await renameCollection(id, newName);
-		setCollections(
-			collections.map((collection) => (collection.id === id ? { ...collection, name: newName } : collection))
-		);
-	};
+	
 
 	return (
 		<CollectionListContext.Provider
@@ -76,6 +53,7 @@ export const CollectionListProvider: React.FC<CollectionListProviderProps> = ({ 
 				handleDelete,
 				handleCreate,
 				handleRename,
+				status,
 			}}
 		>
 			{children}
