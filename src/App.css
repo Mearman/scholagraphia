@@ -16,18 +16,17 @@
 	--background-color-auto: #f4f4f4;
 	--text-color-light: #666;
 	--text-color-dark: #ffffff;
-	--text-color-auto: #333333;
+	--text-color-auto: #333;
 	--border-radius: 8px;
 	--transition-duration: 0.3s;
 	--font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 	--card-background-color-light: #f9f9f9;
 	--card-background-color-dark: #2c3e50;
-	--card-text-color-light: #333333;
-	--card-text-color-dark: #ffffff;
+	--card-text-color-light: #333;
+	--card-text-color-dark: #fff;
 	--border-color: #e0e0e0;
 	--hover-color: #2980b9;
 	--shadow-color: rgba(0, 0, 0, 0.1);
-	--sidebar-width: 250px;
 	--sidebar-width: 250px;
 }
 
@@ -65,20 +64,10 @@ body {
 
 .main-content {
 	flex-grow: 1;
-	.main-content {
-		flex-grow: 1;
-		padding: 20px;
-		transition: margin var(--transition-duration) ease;
-		/* width: calc(100% - var(--sidebar-width) * 2); */
-		margin-left: var(--sidebar-width);
-		margin-right: var(--sidebar-width);
-	}
-
 	padding: 20px;
 	transition: margin var(--transition-duration) ease;
-	/* width: calc(100% - var(--sidebar-width) * 2); */
-	margin-left: var(--sidebar-width);
-	margin-right: var(--sidebar-width);
+	width: calc(100% - var(--sidebar-width) * 2);
+	margin: 0 var(--sidebar-width);
 }
 
 header {
@@ -98,7 +87,7 @@ h1 {
 main {
 	background-color: var(--background-color);
 	border-radius: var(--border-radius);
-	box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+	box-shadow: 0 0 10px var(--shadow-color);
 	padding: 20px;
 	transition: background-color var(--transition-duration) ease, box-shadow var(--transition-duration) ease;
 }
@@ -106,7 +95,7 @@ main {
 .search-bar {
 	background-color: var(--secondary-color);
 	padding: 1.5rem;
-	border-radius: 8px;
+	border-radius: var(--border-radius);
 	box-shadow: 0 4px 6px var(--shadow-color);
 	margin-bottom: 2rem;
 }
@@ -227,9 +216,8 @@ main {
 }
 
 .search-result {
-	background-color: white;
 	padding: 1.5rem;
-	border-radius: 8px;
+	border-radius: var(--border-radius);
 	box-shadow: 0 2px 4px var(--shadow-color);
 	transition: transform var(--transition-duration) ease, box-shadow var(--transition-duration) ease;
 }
@@ -255,7 +243,7 @@ main {
 .loading,
 .no-more-results,
 .no-results {
-	width: var(--sidebar-width);
+	text-align: center;
 	margin-top: 2rem;
 	color: var(--text-color-light);
 	font-style: italic;
@@ -264,16 +252,16 @@ main {
 .sidebar {
 	width: var(--sidebar-width);
 	background-color: var(--secondary-color);
-	overflow-y: show;
 	color: white;
 	padding: 1.5rem;
-	transition: transform 0.3s ease;
+	transition: transform var(--transition-duration) ease;
 	position: fixed;
 	top: 0;
 	bottom: 0;
 	z-index: 1000;
 	overflow-y: show;
 }
+
 .sidebar h2 {
 	margin-top: 0;
 }
@@ -290,7 +278,7 @@ main {
 	padding: 0.5rem 1rem;
 	border-radius: 4px;
 	cursor: pointer;
-	transition: background-color 0.3s ease;
+	transition: background-color var(--transition-duration) ease;
 	position: absolute;
 	top: 10px;
 	right: 10px;
@@ -310,10 +298,11 @@ main {
 	align-items: center;
 	justify-content: center;
 	cursor: pointer;
-	transition: background-color 0.3s ease;
-	position: absolute;
+	transition: background-color var(--transition-duration) ease;
+	position: fixed;
 	top: 50%;
 	font-size: 18px;
+	z-index: 1100;
 }
 
 .show-button:hover {
@@ -335,53 +324,29 @@ main {
 }
 
 .sidebar.left .show-button {
-	right: -30px;
+	right: -20px;
 	border-radius: 0 5px 5px 0;
 }
 
 .sidebar.right .show-button {
-	left: -30px; /* Adjust this value to ensure the button is visible */
+	left: -20px;
+	border-radius: 5px 0 0 5px;
 }
 
 /* Adjust main content margins when sidebars are open */
 .sidebar.left.open ~ .main-content {
 	margin-left: var(--sidebar-width);
-	@media (max-width: 1200px) {
-		.main-content {
-			width: calc(100% - var(--sidebar-width));
-			margin-left: var(--sidebar-width);
-			margin-right: 0;
-		}
-
-		.sidebar.right {
-			transform: translateX(100%);
-		}
-
-		.sidebar.right.open {
-			transform: translateX(0);
-		}
-
-		.sidebar.right.open ~ .main-content {
-			margin-right: 0;
-		}
-	}
 }
 
 .sidebar.right.open ~ .main-content {
 	margin-right: var(--sidebar-width);
-}
-.main-content {
-	width: 100%;
-	margin-left: 0;
-	margin-right: 0;
 }
 
 /* Responsive design */
 @media (max-width: 1200px) {
 	.main-content {
 		width: calc(100% - var(--sidebar-width));
-		margin-left: var(--sidebar-width);
-		margin-right: 0;
+		margin: 0 var(--sidebar-width) 0 0;
 	}
 
 	.sidebar.right {
@@ -404,14 +369,12 @@ main {
 
 	.main-content {
 		width: 100%;
-		margin-left: 0;
-		margin-right: 0;
+		margin: 0;
 	}
 
 	.sidebar.left.open ~ .main-content,
 	.sidebar.right.open ~ .main-content {
-		margin-left: 0;
-		margin-right: 0;
+		margin: 0;
 	}
 
 	.search-options,
@@ -426,13 +389,13 @@ main {
 }
 
 button {
-	background-color: #3498db;
+	background-color: var(--primary-color);
 	color: white;
 	border: none;
 	padding: 0.5rem 1rem;
 	border-radius: 4px;
 	cursor: pointer;
-	transition: background-color 0.3s ease;
+	transition: background-color var(--transition-duration) ease;
 	margin: 0.1rem;
 }
 
@@ -440,7 +403,7 @@ button {
 	background-color: var(--card-background-color-light);
 	padding: 1rem;
 	margin-bottom: 1rem;
-	border-radius: 8px;
+	border-radius: var(--border-radius);
 	box-shadow: 0 2px 4px var(--shadow-color);
 }
 
