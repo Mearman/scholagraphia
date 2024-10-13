@@ -94,13 +94,9 @@ export function SearchBar(): JSX.Element {
 				<button onClick={toggleTheme}>{getThemeIcon()}</button>
 			</div>
 			<div className="search-settings">
-				<label>
-					<input type="checkbox" checked={searchWhileTyping} onChange={(e) => setSearchWhileTyping(e.target.checked)} />
-					Search while typing
-				</label>
 				<label title="Enable or disable search while typing" style={{ cursor: "pointer" }}>
 					<input type="checkbox" checked={searchWhileTyping} onChange={(e) => setSearchWhileTyping(e.target.checked)} />
-					Search while typing
+					Instant search
 				</label>
 				<label title="Enable or disable dynamic sorting of results" style={{ cursor: "pointer" }}>
 					<input type="checkbox" checked={sortOnLoad} onChange={(e) => setSortOnLoad(e.target.checked)} />
