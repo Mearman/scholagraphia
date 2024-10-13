@@ -1,4 +1,3 @@
-// src/contexts/CollectionListContext.tsx
 import { openDB } from "idb";
 import { createContext, useContext, useEffect, useState } from "react";
 import { Collection } from "../types";
@@ -45,6 +44,15 @@ async function createCollection(name: string) {
 	return newCollection;
 }
 
+async function renameCollection(id: string, newName: string) {
+	const db = await getDB();
+	const collection = await db.get(STORE_NAME, id);
+	if (collection) {
+		collection.name = newName;
+		await db.put(STORE_NAME, collection);
+	}
+}
+
 function uuidv4() {
 	return "10000000-1000-4000-8000-100000000000".replace(/[018]/g, (c) =>
 		(+c ^ (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (+c / 4)))).toString(16)
@@ -58,6 +66,7 @@ interface CollectionListContextType {
 	handleClone: (collection: Collection) => void;
 	handleDelete: (id: string) => void;
 	handleCreate: () => void;
+	handleRename: (id: string, newName: string) => void;
 }
 
 const CollectionListContext = createContext<CollectionListContextType | undefined>(undefined);
@@ -105,6 +114,13 @@ export const CollectionListProvider: React.FC<CollectionListProviderProps> = ({ 
 		setCollections([...collections, newCollection]);
 	};
 
+	const handleRename = async (id: string, newName: string) => {
+		await renameCollection(id, newName);
+		setCollections(
+			collections.map((collection) => (collection.id === id ? { ...collection, name: newName } : collection))
+		);
+	};
+
 	return (
 		<CollectionListContext.Provider
 			value={{
@@ -114,6 +130,7 @@ export const CollectionListProvider: React.FC<CollectionListProviderProps> = ({ 
 				handleClone,
 				handleDelete,
 				handleCreate,
+				handleRename,
 			}}
 		>
 			{children}

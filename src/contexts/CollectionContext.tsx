@@ -7,6 +7,7 @@ interface CollectionContextType {
 	handleSelect: () => void;
 	handleClone: () => void;
 	handleDelete: () => void;
+	handleRename: (newName: string) => void;
 }
 
 const CollectionContext = createContext<CollectionContextType | undefined>(undefined);
@@ -15,14 +16,20 @@ export const CollectionProvider: React.FC<{ collection: Collection; children: Re
 	collection,
 	children,
 }) => {
-	const { handleSelect: select, handleClone: clone, handleDelete: del } = useCollectionListContext();
+	const {
+		handleSelect: select,
+		handleClone: clone,
+		handleDelete: del,
+		handleRename: rename,
+	} = useCollectionListContext();
 
 	const handleSelect = () => select(collection);
 	const handleClone = () => clone(collection);
 	const handleDelete = () => del(collection.id);
+	const handleRename = (newName: string) => rename(collection.id, newName);
 
 	return (
-		<CollectionContext.Provider value={{ collection, handleSelect, handleClone, handleDelete }}>
+		<CollectionContext.Provider value={{ collection, handleSelect, handleClone, handleDelete, handleRename }}>
 			{children}
 		</CollectionContext.Provider>
 	);
