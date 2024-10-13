@@ -98,7 +98,11 @@ export function SearchBar(): JSX.Element {
 					<input type="checkbox" checked={searchWhileTyping} onChange={(e) => setSearchWhileTyping(e.target.checked)} />
 					Search while typing
 				</label>
-				<label>
+				<label title="Enable or disable search while typing" style={{ cursor: "pointer" }}>
+					<input type="checkbox" checked={searchWhileTyping} onChange={(e) => setSearchWhileTyping(e.target.checked)} />
+					Search while typing
+				</label>
+				<label title="Enable or disable dynamic sorting of results" style={{ cursor: "pointer" }}>
 					<input type="checkbox" checked={sortOnLoad} onChange={(e) => setSortOnLoad(e.target.checked)} />
 					Dynamic sort
 				</label>
