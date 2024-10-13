@@ -1,16 +1,15 @@
 import "./App.css";
 import { AppContextProvider } from "./AppContext";
+import { CollectionList } from "./components/CollectionList";
+import { CurrentCollection } from "./components/CurrentCollection";
 import { SearchBar } from "./components/SearchBar";
 import { SearchResults } from "./components/SearchResults";
-import { Sidebar } from "./components/Sidebar";
 
 export function App(): JSX.Element {
 	return (
 		<AppContextProvider>
 			<div className="app-container">
-				<Sidebar side="left">
-					<h2>Collections</h2>
-				</Sidebar>
+				<CollectionList />
 				<div className="main-content">
 					<header>
 						<h1>Scholagraphia</h1>
@@ -23,12 +22,11 @@ export function App(): JSX.Element {
 						<p>&copy; {new Date().getFullYear()} Scholagraphia. All rights reserved.</p>
 					</footer>
 				</div>
-				<Sidebar side="right">
-					<h2>Collected</h2>
-				</Sidebar>
+				<CurrentCollection />
 			</div>
 		</AppContextProvider>
 	);
 }
 
 export default App;
+
