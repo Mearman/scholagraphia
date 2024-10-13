@@ -1,4 +1,4 @@
-import { CollectionList } from "./components/CollectionList";
+import { CollectionList } from "./components/collections/CollectionList";
 import { CurrentCollection } from "./components/collections/CurrentCollection";
 import { SearchBar } from "./components/SearchBar";
 import { SearchResults } from "./components/SearchResults";
