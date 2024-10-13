@@ -14,7 +14,7 @@
 	--background-color-light: #ffffff;
 	--background-color-dark: #000000;
 	--background-color-auto: #f4f4f4;
-	--text-color-light: #000000;
+	--text-color-light: #666;
 	--text-color-dark: #ffffff;
 	--text-color-auto: #333333;
 	--border-radius: 8px;
@@ -24,6 +24,9 @@
 	--card-background-color-dark: #2c3e50;
 	--card-text-color-light: #333333;
 	--card-text-color-dark: #ffffff;
+	--border-color: #e0e0e0;
+	--hover-color: #2980b9;
+	--shadow-color: rgba(0, 0, 0, 0.1);
 }
 
 [data-theme="light"] {
@@ -34,6 +37,10 @@
 [data-theme="dark"] {
 	--background-color: var(--background-color-dark);
 	--text-color: var(--text-color-dark);
+	--secondary-color: #34495e;
+	--text-color-light: #bbb;
+	--border-color: #444;
+	--shadow-color: rgba(255, 255, 255, 0.1);
 }
 
 [data-theme="auto"] {
@@ -42,7 +49,7 @@
 }
 
 body {
-	font-family: var(--font-family);
+	font-family: var(--font-family), "Roboto", sans-serif;
 	line-height: 1.6;
 	color: var(--text-color);
 	background-color: var(--background-color);
@@ -53,6 +60,8 @@ body {
 	max-width: 1200px;
 	margin: 0 auto;
 	padding: 20px;
+	display: flex;
+	min-height: 100vh;
 }
 
 header {
@@ -66,6 +75,7 @@ header {
 
 h1 {
 	font-size: 2.5rem;
+	color: var(--primary-color);
 }
 
 main {
@@ -76,21 +86,24 @@ main {
 	transition: background-color var(--transition-duration) ease, box-shadow var(--transition-duration) ease;
 }
 
-/* Search Bar Styles */
 .search-bar {
-	margin-bottom: 20px;
+	background-color: var(--secondary-color);
+	padding: 1.5rem;
+	border-radius: 8px;
+	box-shadow: 0 4px 6px var(--shadow-color);
+	margin-bottom: 2rem;
 }
 
 .search-input {
 	display: flex;
-	margin-bottom: 10px;
+	margin-bottom: 1rem;
 }
 
 .search-input input {
 	flex-grow: 1;
-	padding: 10px;
+	padding: 0.75rem;
 	font-size: 1rem;
-	border: 1px solid #ddd;
+	border: none;
 	border-radius: 4px 0 0 4px;
 	transition: border-color var(--transition-duration) ease;
 }
@@ -101,7 +114,7 @@ main {
 }
 
 .search-input button {
-	padding: 10px 20px;
+	padding: 0.75rem 1.5rem;
 	font-size: 1rem;
 	background-color: var(--primary-color);
 	color: var(--text-color-dark);
@@ -117,15 +130,20 @@ main {
 
 .search-options {
 	display: flex;
+	justify-content: space-between;
+	margin-bottom: 1rem;
 	gap: 10px;
-	margin-bottom: 10px;
 }
 
-.search-options select {
-	padding: 8px;
+.search-options select,
+.search-options button {
+	padding: 0.5rem;
 	font-size: 0.9rem;
-	border: 1px solid #ddd;
+	background-color: var(--background-color);
+	color: var(--text-color);
+	border: 1px solid var(--border-color);
 	border-radius: 4px;
+	cursor: pointer;
 	transition: border-color var(--transition-duration) ease;
 }
 
@@ -136,9 +154,12 @@ main {
 
 .search-settings {
 	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	font-size: 0.9rem;
+	color: var(--text-color-light);
 	flex-wrap: wrap;
 	gap: 15px;
-	font-size: 0.9rem;
 }
 
 .search-settings label {
@@ -147,10 +168,15 @@ main {
 	gap: 5px;
 }
 
+.search-settings input[type="checkbox"] {
+	margin-right: 0.5rem;
+}
+
 .search-settings input[type="number"] {
 	width: 100px;
-	padding: 5px;
-	border: 1px solid #ddd;
+	padding: 0.25rem;
+	margin-left: 0.5rem;
+	border: 1px solid var(--border-color);
 	border-radius: 4px;
 	transition: border-color var(--transition-duration) ease;
 }
@@ -160,10 +186,9 @@ main {
 	outline: none;
 }
 
-/* Search Results Styles */
 .search-results {
 	display: grid;
-	gap: 20px;
+	gap: 1.5rem;
 }
 
 .search-results.grid {
@@ -176,7 +201,7 @@ main {
 
 [data-theme="light"] .search-result {
 	background-color: var(--card-background-color-light);
-	color: var(--card-text-color-light);
+	color: var (--card-text-color-light);
 }
 
 [data-theme="dark"] .search-result {
@@ -185,49 +210,148 @@ main {
 }
 
 .search-result {
-	border: 1px solid #e0e0e0;
-	border-radius: var(--border-radius);
-	padding: 15px;
+	background-color: white;
+	padding: 1.5rem;
+	border-radius: 8px;
+	box-shadow: 0 2px 4px var(--shadow-color);
 	transition: transform var(--transition-duration) ease, box-shadow var(--transition-duration) ease;
 }
 
 .search-result:hover {
 	transform: translateY(-5px);
-	box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+	box-shadow: 0 4px 8px var(--shadow-color);
 }
 
 .search-result h3 {
+	margin-top: 0;
+	color: var(--primary-color);
 	font-size: 1.2rem;
 	margin-bottom: 10px;
 }
 
 .search-result p {
+	margin: 0.5rem 0;
+	color: var(--text-color-light);
 	font-size: 0.9rem;
 }
 
-.no-results,
 .loading,
-.no-more-results {
+.no-more-results,
+.no-results {
 	text-align: center;
+	margin-top: 2rem;
+	color: var(--text-color-light);
 	font-style: italic;
-	color: #7f8c8d;
-	margin-top: 20px;
 }
 
-footer {
-	text-align: center;
-	margin-top: 20px;
-	padding: 10px;
+.sidebar {
+	width: 250px;
 	background-color: var(--secondary-color);
-	color: var(--text-color-dark);
-	border-radius: var(--border-radius);
+	color: white;
+	padding: 1.5rem;
+	transition: transform 0.3s ease;
+	position: fixed;
+	top: 0;
+	bottom: 0;
+	z-index: 1000;
 }
 
-/* Responsive Design */
+.sidebar h2 {
+	margin-top: 0;
+}
+
+.sidebar-content {
+	height: 100%;
+	padding: 20px;
+	overflow-y: auto;
+}
+
+.pin-button {
+	background-color: var(--primary-color);
+	color: white;
+	border: none;
+	padding: 0.5rem 1rem;
+	border-radius: 4px;
+	cursor: pointer;
+	transition: background-color 0.3s ease;
+	position: absolute;
+	top: 10px;
+	right: 10px;
+}
+
+.pin-button:hover {
+	background-color: var(--hover-color);
+}
+
+.show-button {
+	background-color: var(--secondary-color);
+	color: white;
+	border: none;
+	width: 30px;
+	height: 60px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	transition: background-color 0.3s ease;
+	position: absolute;
+	top: 50%;
+	font-size: 18px;
+}
+
+.show-button:hover {
+	background-color: var(--hover-color);
+}
+
+.sidebar.left {
+	left: 0;
+	transform: translateX(-100%);
+}
+
+.sidebar.right {
+	right: 0;
+	transform: translateX(100%);
+}
+
+.sidebar.open {
+	transform: translateX(0);
+}
+
+.sidebar.left .show-button {
+	right: -20px;
+	border-radius: 0 5px 5px 0;
+}
+
+.sidebar.right .show-button {
+	left: -20px;
+	border-radius: 5px 0 0 5px;
+}
+
+/* Adjust main content margins when sidebars are open */
+.sidebar.left.open ~ .main-content {
+	margin-left: 250px;
+}
+
+.sidebar.right.open ~ .main-content {
+	margin-right: 250px;
+}
+
+/* Responsive design */
 @media (max-width: 768px) {
+	.sidebar {
+		width: 100%;
+	}
+
+	.sidebar.left.open ~ .main-content,
+	.sidebar.right.open ~ .main-content {
+		margin-left: 0;
+		margin-right: 0;
+	}
+
 	.search-options,
 	.search-settings {
 		flex-direction: column;
+		gap: 1rem;
 	}
 
 	.search-results.grid {
