@@ -1,14 +1,21 @@
 import { useEffect, useState } from "react";
 import { Collection } from "../types";
-import { cloneCollection, createCollection, deleteCollection, getCollections, isoString, renameCollection } from "./collections";
+import {
+	cloneCollection,
+	createCollection,
+	deleteCollection,
+	getCollections,
+	isoString,
+	renameCollection,
+} from "./collections";
 
 const Status = {
-	IDLE: 'idle',
-	LOADING: 'loading',
-	ERROR: 'error',
-	SUCCESS: 'success'
+	IDLE: "idle",
+	LOADING: "loading",
+	ERROR: "error",
+	SUCCESS: "success",
 } as const;
-type Status = typeof Status[keyof typeof Status];
+type Status = (typeof Status)[keyof typeof Status];
 export { Status };
 
 export const useCollections = () => {
@@ -17,12 +24,10 @@ export const useCollections = () => {
 	useEffect(() => {
 		setStatus(Status.LOADING);
 		const fetchCollections = async () => {
-		
-				const collectionsResponse = await getCollections();
-				setStatus('success');
-				setCollections(collectionsResponse);
-			
-		}
+			const collectionsResponse = await getCollections();
+			setStatus("success");
+			setCollections(collectionsResponse);
+		};
 		fetchCollections();
 	}, []);
 
@@ -50,6 +55,6 @@ export const useCollections = () => {
 		);
 	};
 	return { status, collections, clone, remove, create, rename };
-}
+};
 
 export type CollectionsHook = ReturnType<typeof useCollections>;

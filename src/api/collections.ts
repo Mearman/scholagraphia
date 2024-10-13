@@ -29,9 +29,9 @@ export async function addCollection(collection: Collection) {
 
 export async function addCollections(collections: Collection[]) {
 	const db = await getDB();
-	const keys = []
+	const keys = [];
 	for await (const collection of collections) {
-		const key = await db.put(STORE_NAME, collection)
+		const key = await db.put(STORE_NAME, collection);
 		keys.push(key);
 	}
 	return keys;
@@ -95,12 +95,11 @@ export function isoString() {
 	return new Date().toISOString();
 }
 
-
 export interface ICollectionsRepository {
 	getCollections(): Promise<Collection[]>;
 	getCollection(id: string): Promise<Collection>;
-	addCollection(collection: Collection):unknown
-	addCollections(collections: Collection[]):unknown
+	addCollection(collection: Collection): unknown;
+	addCollections(collections: Collection[]): unknown;
 	deleteCollection(id: string): Promise<void>;
 	deleteCollections(ids: string[]): Promise<void>;
 	cloneCollection(collection: Collection): Promise<Collection>;
