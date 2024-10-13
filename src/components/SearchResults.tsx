@@ -1,6 +1,5 @@
 import { useContext, useEffect } from "react";
 import { AppContext, AppContextType } from "../AppContext";
-
 import { getEntityTypeFromId } from "../util/GetEntityTypeFromId";
 
 export function SearchResults(): JSX.Element {
@@ -17,8 +16,7 @@ export function SearchResults(): JSX.Element {
 	useEffect(() => {
 		const handleScroll = () => {
 			if (
-				window.innerHeight + window.scrollY >=
-					document.documentElement.scrollHeight - 500 &&
+				window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 500 &&
 				!isLoading &&
 				!noMoreResults
 			) {
