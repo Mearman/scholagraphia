@@ -1,12 +1,13 @@
 import { createContext, PropsWithChildren, useContext, useEffect, useState } from "react";
+import { isoString } from "../api/collections.ts";
 import { CollectionsHook, Status } from "../api/useCollections.ts";
 import { Collection } from "../types";
 
 interface CollectionListContextType {
 	collections: Collection[];
 	activeCollection: Collection | null;
-	handleSelect: (collection: Collection) => void;
-	handleClone: (collection: Collection) => void;
+	handleSelect: (collectionId: string) => void;
+	handleClone: (collectionId: string) => void;
 	handleDelete: (id: string) => void;
 	handleCreate: (name?: string) => void;
 	handleRename: (id: string, newName: string) => void;
@@ -25,6 +26,26 @@ export const CollectionListProvider: React.FC<CollectionListProviderProps> = ({ 
 	const [activeCollection, setActiveCollection] = useState<Collection | null>(null);
 	const { collections, clone, remove, create, rename, status, updateCollection } = collectionsHook;
 
+	// Load active collection from local storage on initialization
+	useEffect(() => {
+		const savedActiveCollectionId = localStorage.getItem("activeCollectionId");
+		if (savedActiveCollectionId) {
+			const savedActiveCollection = collections.find((collection) => collection.id === savedActiveCollectionId);
+			if (savedActiveCollection) {
+				setActiveCollection(savedActiveCollection);
+			}
+		}
+	}, [collections]);
+
+	// Save active collection to local storage whenever it changes
+	useEffect(() => {
+		if (activeCollection) {
+			localStorage.setItem("activeCollectionId", activeCollection.id);
+		} else {
+			localStorage.removeItem("activeCollectionId");
+		}
+	}, [activeCollection]);
+
 	const selectMostRecentCollection = () => {
 		if (collections.length > 0) {
 			const mostRecent = collections.reduce((prev, current) =>
@@ -40,7 +61,7 @@ export const CollectionListProvider: React.FC<CollectionListProviderProps> = ({ 
 		}
 	}, [collections, activeCollection]);
 
-	const handleClone = async (collection: Collection) => {
+	const handleClone = async (collection: string) => {
 		const newCollection = await clone(collection);
 		setActiveCollection(newCollection);
 	};
@@ -50,7 +71,7 @@ export const CollectionListProvider: React.FC<CollectionListProviderProps> = ({ 
 		selectMostRecentCollection();
 	};
 
-	const handleCreate = async (name: string = "New Collection") => {
+	const handleCreate = async (name: string = isoString()) => {
 		const newCollection = await create(name);
 		setActiveCollection(newCollection);
 	};
@@ -62,8 +83,13 @@ export const CollectionListProvider: React.FC<CollectionListProviderProps> = ({ 
 		}
 	};
 
-	const handleSelect = (collection: Collection) => {
-		setActiveCollection(collection);
+	const handleSelect = (collectionId: string) => {
+		const selectedCollection = collections.find((c) => c.id === collectionId);
+		if (selectedCollection) {
+			setActiveCollection(selectedCollection);
+		} else {
+			selectMostRecentCollection();
+		}
 	};
 
 	const handleAddToCollection = async (itemId: string) => {

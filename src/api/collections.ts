@@ -51,7 +51,8 @@ export async function deleteCollections(ids: string[]) {
 	}
 }
 
-export async function cloneCollection(collection: Collection): Promise<Collection> {
+export async function cloneCollection(collectionId: string): Promise<Collection> {
+	const collection = await getCollection(collectionId);
 	const newCollection = {
 		...collection,
 		id: uuidv4(),
@@ -63,9 +64,9 @@ export async function cloneCollection(collection: Collection): Promise<Collectio
 	return newCollection;
 }
 
-export async function cloneCollections(collections: Collection[]): Promise<Collection[]> {
+export async function cloneCollections(collectionIds: string[]): Promise<Collection[]> {
 	const clonedCollections = [];
-	for await (const collection of collections) {
+	for await (const collection of collectionIds) {
 		clonedCollections.push(await cloneCollection(collection));
 	}
 	return clonedCollections;
@@ -109,8 +110,8 @@ export interface CollectionsRepository<T = unknown> {
 	addCollections(collections: Collection[]): Promise<T[]>;
 	deleteCollection(id: string): Promise<void>;
 	deleteCollections(ids: string[]): Promise<void>;
-	cloneCollection(collection: Collection): Promise<Collection>;
-	cloneCollections(collections: Collection[]): Promise<Collection[]>;
+	cloneCollection(collection: string): Promise<Collection>;
+	cloneCollections(collections: string[]): Promise<Collection[]>;
 	createCollection(name: string): Promise<Collection>;
 	renameCollection(id: string, newName: string): Promise<void>;
 	updateCollection(updatedCollection: Collection): Promise<void>;
@@ -141,11 +142,11 @@ export class IdbCollections implements CollectionsRepository<IDBValidKey> {
 		return deleteCollections(ids);
 	}
 
-	async cloneCollection(collection: Collection): Promise<Collection> {
+	async cloneCollection(collection: string): Promise<Collection> {
 		return cloneCollection(collection);
 	}
 
-	async cloneCollections(collections: Collection[]): Promise<Collection[]> {
+	async cloneCollections(collections: string[]): Promise<Collection[]> {
 		return cloneCollections(collections);
 	}
 

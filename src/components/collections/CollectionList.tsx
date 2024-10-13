@@ -14,7 +14,7 @@ export function CollectionList() {
 			const mostRecent = collections.reduce((prev, current) =>
 				new Date(current.updated_at) > new Date(prev.updated_at) ? current : prev
 			);
-			handleSelect(mostRecent);
+			handleSelect(mostRecent.id);
 		}
 	}, [collections, activeCollection, status]);
 
@@ -27,7 +27,7 @@ export function CollectionList() {
 					<CollectionProvider key={collection.id} collection={collection}>
 						<CollectionItem
 							isActive={activeCollection?.id === collection.id}
-							onSelect={() => handleSelect(collection)}
+							onSelect={() => handleSelect(collection.id)}
 						/>
 					</CollectionProvider>
 				))}

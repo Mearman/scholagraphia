@@ -23,8 +23,8 @@ export const CollectionProvider: React.FC<{ collection: Collection; children: Re
 		handleRename: rename,
 	} = useCollectionListContext();
 
-	const handleSelect = () => select(collection);
-	const handleClone = () => clone(collection);
+	const handleSelect = () => select(collection.id);
+	const handleClone = () => clone(collection.id);
 	const handleDelete = () => del(collection.id);
 	const handleRename = (newName: string) => rename(collection.id, newName);
 

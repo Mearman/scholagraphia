@@ -32,7 +32,7 @@ export const useCollections = () => {
 		fetchCollections();
 	}, []);
 
-	const clone = async (collection: Collection) => {
+	const clone = async (collection: string) => {
 		const newCollection = await cloneCollection(collection);
 		setCollections([...collections, newCollection]);
 		return newCollection;
