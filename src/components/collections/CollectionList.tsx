@@ -1,16 +1,22 @@
-import { useState } from "react";
+import { useEffect } from "react";
 import { CollectionProvider } from "../../contexts/CollectionContext";
 import { useCollectionListContext } from "../../contexts/CollectionListContext";
 import { Sidebar } from "../Sidebar";
 import { CollectionItem } from "./CollectionItem";
 
 export function CollectionList() {
-	const { collections, handleCreate } = useCollectionListContext();
-	const [activeCollectionId, setActiveCollectionId] = useState<string | null>(null);
+	const { collections, handleCreate, activeCollection, handleSelect, status } = useCollectionListContext();
 
-	const handleSetActiveCollection = (id: string) => {
-		setActiveCollectionId(id);
-	};
+	useEffect(() => {
+		if (status === "success" && collections.length === 0) {
+			handleCreate("Default Collection");
+		} else if (status === "success" && collections.length > 0 && !activeCollection) {
+			const mostRecent = collections.reduce((prev, current) =>
+				new Date(current.updated_at) > new Date(prev.updated_at) ? current : prev
+			);
+			handleSelect(mostRecent);
+		}
+	}, [collections, activeCollection, status]);
 
 	return (
 		<Sidebar side="left">
@@ -20,8 +26,8 @@ export function CollectionList() {
 				{collections.map((collection) => (
 					<CollectionProvider key={collection.id} collection={collection}>
 						<CollectionItem
-							isActive={collection.id === activeCollectionId}
-							onSelect={() => handleSetActiveCollection(collection.id)}
+							isActive={activeCollection?.id === collection.id}
+							onSelect={() => handleSelect(collection)}
 						/>
 					</CollectionProvider>
 				))}

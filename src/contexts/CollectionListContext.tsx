@@ -1,4 +1,4 @@
-import { createContext, PropsWithChildren, useContext, useState } from "react";
+import { createContext, PropsWithChildren, useContext, useEffect, useState } from "react";
 import { CollectionsHook, Status } from "../api/useCollections.ts";
 import { Collection } from "../types";
 
@@ -8,7 +8,7 @@ interface CollectionListContextType {
 	handleSelect: (collection: Collection) => void;
 	handleClone: (collection: Collection) => void;
 	handleDelete: (id: string) => void;
-	handleCreate: () => void;
+	handleCreate: (name?: string) => void;
 	handleRename: (id: string, newName: string) => void;
 	handleAddToCollection: (itemId: string) => void;
 	handleRemoveFromCollection: (itemId: string) => void;
@@ -25,6 +25,21 @@ export const CollectionListProvider: React.FC<CollectionListProviderProps> = ({ 
 	const [activeCollection, setActiveCollection] = useState<Collection | null>(null);
 	const { collections, clone, remove, create, rename, status, updateCollection } = collectionsHook;
 
+	const selectMostRecentCollection = () => {
+		if (collections.length > 0) {
+			const mostRecent = collections.reduce((prev, current) =>
+				new Date(current.updated_at) > new Date(prev.updated_at) ? current : prev
+			);
+			setActiveCollection(mostRecent);
+		}
+	};
+
+	useEffect(() => {
+		if (collections.length > 0 && !activeCollection) {
+			selectMostRecentCollection();
+		}
+	}, [collections, activeCollection]);
+
 	const handleClone = async (collection: Collection) => {
 		const newCollection = await clone(collection);
 		setActiveCollection(newCollection);
@@ -32,16 +47,19 @@ export const CollectionListProvider: React.FC<CollectionListProviderProps> = ({ 
 
 	const handleDelete = async (id: string) => {
 		await remove(id);
-		setActiveCollection(null);
+		selectMostRecentCollection();
 	};
 
-	const handleCreate = async () => {
-		const newCollection = await create();
+	const handleCreate = async (name: string = "New Collection") => {
+		const newCollection = await create(name);
 		setActiveCollection(newCollection);
 	};
 
 	const handleRename = async (id: string, newName: string) => {
 		await rename(id, newName);
+		if (activeCollection && activeCollection.id === id) {
+			setActiveCollection({ ...activeCollection, name: newName });
+		}
 	};
 
 	const handleSelect = (collection: Collection) => {
