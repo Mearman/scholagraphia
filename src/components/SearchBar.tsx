@@ -100,7 +100,7 @@ export function SearchBar(): JSX.Element {
 				</label>
 				<label>
 					<input type="checkbox" checked={sortOnLoad} onChange={(e) => setSortOnLoad(e.target.checked)} />
-					Sort results when new page is loaded
+					Dynamic sort
 				</label>
 				<label>
 					Cache Expiry (ms):
