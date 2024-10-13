@@ -7,6 +7,7 @@ import {
 	getCollections,
 	isoString,
 	renameCollection,
+	updateCollection as updateCollectionInDB,
 } from "./collections";
 
 const Status = {
@@ -54,7 +55,15 @@ export const useCollections = () => {
 			collections.map((collection) => (collection.id === id ? { ...collection, name: newName } : collection))
 		);
 	};
-	return { status, collections, clone, remove, create, rename };
+
+	const updateCollection = async (updatedCollection: Collection) => {
+		await updateCollectionInDB(updatedCollection);
+		setCollections(
+			collections.map((collection) => (collection.id === updatedCollection.id ? updatedCollection : collection))
+		);
+	};
+
+	return { status, collections, clone, remove, create, rename, updateCollection };
 };
 
 export type CollectionsHook = ReturnType<typeof useCollections>;

@@ -87,6 +87,11 @@ export async function renameCollection(id: string, newName: string) {
 	}
 }
 
+export async function updateCollection(updatedCollection: Collection) {
+	const db = await getDB();
+	await db.put(STORE_NAME, updatedCollection);
+}
+
 function uuidv4() {
 	return "10000000-1000-4000-8000-100000000000".replace(/[018]/g, (c) =>
 		(+c ^ (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (+c / 4)))).toString(16)
@@ -108,6 +113,7 @@ export interface CollectionsRepository<T = unknown> {
 	cloneCollections(collections: Collection[]): Promise<Collection[]>;
 	createCollection(name: string): Promise<Collection>;
 	renameCollection(id: string, newName: string): Promise<void>;
+	updateCollection(updatedCollection: Collection): Promise<void>;
 }
 
 export class IdbCollections implements CollectionsRepository<IDBValidKey> {
@@ -149,5 +155,9 @@ export class IdbCollections implements CollectionsRepository<IDBValidKey> {
 
 	async renameCollection(id: string, newName: string): Promise<void> {
 		return renameCollection(id, newName);
+	}
+
+	async updateCollection(updatedCollection: Collection): Promise<void> {
+		return updateCollection(updatedCollection);
 	}
 }

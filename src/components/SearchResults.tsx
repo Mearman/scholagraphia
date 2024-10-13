@@ -1,5 +1,6 @@
 import { useContext, useEffect } from "react";
 import { AppContext, AppContextType } from "../AppContext";
+import { useCollectionListContext } from "../contexts/CollectionListContext";
 import { getEntityTypeFromId } from "../util/GetEntityTypeFromId";
 
 export function SearchResults(): JSX.Element {
@@ -13,6 +14,19 @@ export function SearchResults(): JSX.Element {
 		viewMode,
 	}: AppContextType = useContext(AppContext);
 
+	const { activeCollection, handleAddToCollection, handleRemoveFromCollection } = useCollectionListContext();
+
+	const isInCollection = (id: string) => {
+		return activeCollection?.items.includes(id) || false;
+	};
+
+	const handleToggleCollection = (id: string) => {
+		if (isInCollection(id)) {
+			handleRemoveFromCollection(id);
+		} else {
+			handleAddToCollection(id);
+		}
+	};
 	useEffect(() => {
 		const handleScroll = () => {
 			if (
@@ -41,6 +55,9 @@ export function SearchResults(): JSX.Element {
 					<h3>{result.display_name}</h3>
 					<p>Relevance Score: {result.relevance_score.toFixed(2)}</p>
 					<p>Entity Type: {getEntityTypeFromId(result.id)}</p>
+					<button onClick={() => handleToggleCollection(result.id)} disabled={!activeCollection}>
+						{isInCollection(result.id) ? "Remove from" : "Add to"} Collection
+					</button>
 				</div>
 			))}
 			{isLoading && <p className="loading">Loading more results...</p>}
