@@ -30,7 +30,9 @@ type EntityType = (typeof EntityType)[keyof typeof EntityType];
 export { EntityType };
 
 export interface Collection {
-    id: string;
-    name: string;
-    items: string[];
+	id: string;
+	name: string;
+	items: string[];
+	created_at: Date;
+	updated_at: Date;
 }
