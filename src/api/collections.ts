@@ -27,7 +27,9 @@ export async function addCollection(collection: Collection) {
 	return db.put(STORE_NAME, collection);
 }
 
-export async function addCollections(collections: Collection[]) {
+export async function addCollections(
+	collections: Collection[]
+): Promise<(string | number | Date | ArrayBufferView | ArrayBuffer | IDBValidKey[])[]> {
 	const db = await getDB();
 	const keys = [];
 	for await (const collection of collections) {
@@ -95,11 +97,11 @@ export function isoString() {
 	return new Date().toISOString();
 }
 
-export interface ICollectionsRepository {
+export interface CollectionsRepository<T = unknown> {
 	getCollections(): Promise<Collection[]>;
 	getCollection(id: string): Promise<Collection>;
-	addCollection(collection: Collection): unknown;
-	addCollections(collections: Collection[]): unknown;
+	addCollection(collection: Collection): Promise<T>;
+	addCollections(collections: Collection[]): Promise<T[]>;
 	deleteCollection(id: string): Promise<void>;
 	deleteCollections(ids: string[]): Promise<void>;
 	cloneCollection(collection: Collection): Promise<Collection>;
@@ -108,7 +110,7 @@ export interface ICollectionsRepository {
 	renameCollection(id: string, newName: string): Promise<void>;
 }
 
-export class CollectionsRepository implements ICollectionsRepository {
+export class IdbCollections implements CollectionsRepository<IDBValidKey> {
 	async getCollections(): Promise<Collection[]> {
 		return getCollections();
 	}
@@ -117,12 +119,12 @@ export class CollectionsRepository implements ICollectionsRepository {
 		return getCollection(id);
 	}
 
-	async addCollection(collection: Collection) {
-		return addCollection(collection);
+	async addCollection(collection: Collection): Promise<IDBValidKey> {
+		return await addCollection(collection);
 	}
 
 	async addCollections(collections: Collection[]): Promise<IDBValidKey[]> {
-		return addCollections(collections);
+		return await addCollections(collections);
 	}
 
 	async deleteCollection(id: string): Promise<void> {

@@ -25,23 +25,21 @@ export const CollectionListProvider: React.FC<CollectionListProviderProps> = ({ 
 	const handleClone = async (collection: Collection) => {
 		const newCollection = await clone(collection);
 		setActiveCollection(newCollection);
-	}
+	};
 	const handleDelete = async (id: string) => {
 		await remove(id);
 		setActiveCollection(null);
-	}
+	};
 	const handleCreate = async () => {
 		const newCollection = await create();
 		setActiveCollection(newCollection);
-	}
+	};
 	const handleRename = async (id: string, newName: string) => {
 		await rename(id, newName);
-	}
+	};
 	const handleSelect = (collection: Collection) => {
 		setActiveCollection(collection);
 	};
-
-	
 
 	return (
 		<CollectionListContext.Provider
